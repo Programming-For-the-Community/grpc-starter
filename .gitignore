@@ -1,8 +1,9 @@
 # Files
+**/.terraform.lock.hcl
 
 # Directories
 .vscode
-.terraform/*
+**/.terraform/*
 node_modules
 dist
 coverage
