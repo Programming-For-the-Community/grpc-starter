@@ -1,0 +1,33 @@
+{
+  "env": {
+    "node": true,
+    "es2021": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",  // Set TypeScript parser
+  "parserOptions": {
+    "ecmaVersion": 2020,                  // Use modern JavaScript features
+    "sourceType": "module",               // Enable ES modules
+    "project": "./tsconfig.json"          // Link ESLint with your tsconfig
+  },
+  "plugins": [
+    "@typescript-eslint",                 // ESLint plugin for TypeScript
+    "prettier"
+  ],
+  "rules": {
+    "no-console": "warn",
+    "no-process-exit": "error",
+    "indent": ["error", 2],
+    "quotes": ["error", "single"],
+    "semi": ["error", "always"],
+    "no-undef": ["warn"],
+    "no-path-concat": "warn",
+    "prefer-const": "error",
+    "no-unused-vars": "error",
+    "prettier/prettier": "warn"
+  }
+}
