@@ -1,0 +1,8 @@
+# Files
+
+# Directories
+.vscode
+.terraform/*
+node_modules
+dist
+coverage

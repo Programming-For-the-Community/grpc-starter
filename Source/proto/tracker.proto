@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+service Tracker {
+
+    // Create a user
+    rpc CreateUser(Username) returns (UserResponse) {}
+
+    // Get all the created users
+    rpc GetUsers(google.protobuf.Empty) returns (stream UserResponse) {}
+
+    // Get the requested user
+    rpc GetUser(Username) returns (UserResponse) {}
+
+    // Stream the location of the provided user
+    rpc GetLocation(Username) returns (stream UserResponse) {}
+
+    // Get the current location of the provided user
+    rpc GetCurrentLocation(Username) returns (LocationResponse) {}
+
+    // Get the last path traversed by the provided user
+    rpc GetLastPath(Username) returns (stream LocationResponse) {}
+
+    // Get the request path traversed by the provided user
+    rpc GetPath(PathRequest) returns (stream LocationResponse) {}
+
+    // Randomly move the user to a new location
+    rpc MoveUser(Username) returns (UserResponse) {}
+
+    // Move the user through a series of random locations, creating a path traveled
+    rpc TakeTrip(Username) returns (UserResponse) {}
+
+    // Get the current locations of the provided users
+    rpc GetLocations(stream Username) returns (stream LocationResponse) {}
+}
+
+message Username {
+    string name = 1;
+}
+
+message User {
+    string name = 1;
+    Location currentLocation = 2;
+    map<int32, Path> pathsTraveled = 3;
+}
+
+message Location {
+    optional float x = 1;
+    optional float y = 2;
+}
+
+message Path {
+    repeated Location pathTraveled = 1;
+}
+
+message UserResponse {
+    TrackerStatus status = 1;
+    string message = 2;
+    optional User user = 3;
+}
+
+message LocationResponse {
+    TrackerStatus status = 1;
+    string message = 2;
+    Username userName = 3;
+    optional Location location = 4;
+}
+
+message PathRequest {
+    string userName = 1;
+    string pathKey = 2;
+}
+
+enum TrackerStatus {
+    OK = 0;
+    USER_NOT_FOUND = 400;
+    PATH_NOT_FOUND = 401;
+}
