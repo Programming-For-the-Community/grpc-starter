@@ -1,12 +1,12 @@
 resource "aws_dynamodb_table" "grpc_users" {
-  name           = "gRPC-Users-${var.account_id}"
-  billing_mode   = "PAY_PER_REQUEST"
+  name         = "gRPC-Users-${var.account_id}"
+  billing_mode = "PAY_PER_REQUEST"
 
-  hash_key       = "Username"
-  range_key      = "Location"
+  hash_key  = "Username"
+  range_key = "Location"
 
   server_side_encryption {
-    enabled = true
+    enabled     = true
     kms_key_arn = aws_kms_key.grpc_users_table_key.arn
   }
 

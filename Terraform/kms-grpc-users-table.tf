@@ -3,8 +3,8 @@ resource "aws_kms_key" "grpc_users_table_key" {
   enable_key_rotation = true
 
   tags = {
-    Owner   = var.owner
-    Project = var.project
+    Owner       = var.owner
+    Project     = var.project
     Description = "KMS key for gRPC Users table"
   }
 }
