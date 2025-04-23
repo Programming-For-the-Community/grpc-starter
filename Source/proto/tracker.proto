@@ -74,6 +74,8 @@ message PathRequest {
 
 enum TrackerStatus {
     OK = 0;
-    USER_NOT_FOUND = 400;
-    PATH_NOT_FOUND = 401;
+    USER_ALREADY_EXISTS = 400;
+    USER_NOT_CREATED = 401;
+    USER_NOT_FOUND = 402;
+    PATH_NOT_FOUND = 403;
 }
