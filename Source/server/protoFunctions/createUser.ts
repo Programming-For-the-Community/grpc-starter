@@ -35,6 +35,11 @@ export async function createUser(call: grpc.ServerUnaryCall<Username, UserRespon
     }
   } catch (err) {
     logger.error(err);
+
+    callback(null, {
+      status: TrackerStatus.USER_NOT_CREATED,
+      message: `Could not create user in DynamoDB: ${err}`,
+    });
   }
 
   const newUser: User = {

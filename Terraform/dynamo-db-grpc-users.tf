@@ -3,7 +3,6 @@ resource "aws_dynamodb_table" "grpc_users" {
   billing_mode = "PAY_PER_REQUEST"
 
   hash_key  = "Username"
-  range_key = "CurrentLocation"
 
   server_side_encryption {
     enabled     = true
@@ -12,11 +11,6 @@ resource "aws_dynamodb_table" "grpc_users" {
 
   attribute {
     name = "Username"
-    type = "S"
-  }
-
-  attribute {
-    name = "CurrentLocation"
     type = "S"
   }
 
