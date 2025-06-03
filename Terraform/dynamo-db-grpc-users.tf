@@ -2,7 +2,7 @@ resource "aws_dynamodb_table" "grpc_users" {
   name         = "gRPC-Users-${var.account_id}"
   billing_mode = "PAY_PER_REQUEST"
 
-  hash_key  = "Username"
+  hash_key = "Username"
 
   server_side_encryption {
     enabled     = true
