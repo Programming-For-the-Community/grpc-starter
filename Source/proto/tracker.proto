@@ -1,8 +1,6 @@
 syntax = "proto3";
 
-option java_package = "com.example.grpcClient.tracker";
-
-import "google/protobuf/empty.proto";
+package tracker;
 
 service Tracker {
 
@@ -10,7 +8,7 @@ service Tracker {
     rpc CreateUser(Username) returns (UserResponse) {}
 
     // Get all the created users
-    rpc GetUsers(google.protobuf.Empty) returns (stream UserResponse) {}
+    rpc GetUsers(Empty) returns (stream UserResponse) {}
 
     // Get the requested user
     rpc GetUser(Username) returns (UserResponse) {}
@@ -36,6 +34,8 @@ service Tracker {
     // Get the current locations of the provided users
     rpc GetLocations(stream Username) returns (stream LocationResponse) {}
 }
+
+message Empty {}
 
 message Username {
     string name = 1;

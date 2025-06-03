@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-core:commonMain:1.7.3" type="kotlin.common" external-system-id="GRADLE">
+    <properties groupId="org.jetbrains.kotlinx" artifactId="kotlinx-coroutines-core" version="1.7.3" baseVersion="1.7.3" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/Source/client/KotlinClient/.gradle/kotlin/kotlinTransformedMetadataLibraries/org.jetbrains.kotlinx-kotlinx-coroutines-core-1.7.3-commonMain-R50ueQ.klib!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core/1.7.3/e968932da200f1626bdf480dd55cca94755a8078/kotlinx-coroutines-core-1.7.3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

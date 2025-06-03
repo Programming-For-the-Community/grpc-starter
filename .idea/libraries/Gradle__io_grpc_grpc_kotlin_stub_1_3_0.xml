@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: io.grpc:grpc-kotlin-stub:1.3.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="io.grpc" artifactId="grpc-kotlin-stub" version="1.3.0" baseVersion="1.3.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-kotlin-stub/1.3.0/4d0102df09897f3dc6144ea9d8a9bd9a8a622503/grpc-kotlin-stub-1.3.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-kotlin-stub/1.3.0/fe00bbba602c48739584897d6be66cba01c7bc23/grpc-kotlin-stub-1.3.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-kotlin-stub/1.3.0/dc7524ca3fe2d871544a4958c05b743c7b89e7c2/grpc-kotlin-stub-1.3.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

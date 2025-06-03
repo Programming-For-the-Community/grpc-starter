@@ -1,0 +1,9 @@
+# Install protoc-gen-dart
+dart pub global activate protoc_plugin
+
+# Verify that protoc-gen-dart is installed
+protoc-gen-dart --version
+
+# Proto Command to generate Dart files for gRPC Server
+# Make sure that destination directory exists prior to running the command
+protoc --dart_out=grpc:lib/proto -I../proto ../proto/tracker.proto

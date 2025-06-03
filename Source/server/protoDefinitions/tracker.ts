@@ -8,9 +8,8 @@
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { Empty } from "./google/protobuf/empty";
 
-export const protobufPackage = "";
+export const protobufPackage = "tracker";
 
 export enum TrackerStatus {
   OK = 0,
@@ -63,6 +62,9 @@ export function trackerStatusToJSON(object: TrackerStatus): string {
   }
 }
 
+export interface Empty {
+}
+
 export interface Username {
   name: string;
 }
@@ -104,6 +106,49 @@ export interface PathRequest {
   userName: string;
   pathKey: string;
 }
+
+function createBaseEmpty(): Empty {
+  return {};
+}
+
+export const Empty: MessageFns<Empty> = {
+  encode(_: Empty, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Empty {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseEmpty();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): Empty {
+    return {};
+  },
+
+  toJSON(_: Empty): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Empty>, I>>(base?: I): Empty {
+    return Empty.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Empty>, I>>(_: I): Empty {
+    const message = createBaseEmpty();
+    return message;
+  },
+};
 
 function createBaseUsername(): Username {
   return { name: "" };
@@ -796,7 +841,7 @@ export interface Tracker {
   GetLocations(request: Observable<Username>): Observable<LocationResponse>;
 }
 
-export const TrackerServiceName = "Tracker";
+export const TrackerServiceName = "tracker.Tracker";
 export class TrackerClientImpl implements Tracker {
   private readonly rpc: Rpc;
   private readonly service: string;

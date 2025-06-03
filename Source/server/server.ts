@@ -26,7 +26,10 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 
 // Get typed service definition
 const grpcObject = grpc.loadPackageDefinition(packageDefinition) as any;
-const trackerService = grpcObject.Tracker.service;
+
+logger.info(`Available services in tracker package: ${Object.keys(grpcObject.tracker)}`);
+
+const trackerService = grpcObject.tracker.Tracker.service;
 
 // Create gRPC server
 const server: grpc.Server = new grpc.Server();

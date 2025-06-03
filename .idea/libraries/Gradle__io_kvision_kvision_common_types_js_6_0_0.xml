@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: io.kvision:kvision-common-types-js:6.0.0" type="kotlin.js" external-system-id="GRADLE">
+    <properties groupId="io.kvision" artifactId="kvision-common-types-js" version="6.0.0" baseVersion="6.0.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.kvision/kvision-common-types-js/6.0.0/814a38dc153d85248f0150320ce1a3c4ed615aa0/kvision-common-types-js-6.0.0.klib!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.kvision/kvision-common-types-js/6.0.0/6893cace5314d5c3698413d402051a040269d00/kvision-common-types-js-6.0.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.kvision/kvision-common-types-js/6.0.0/980cdcdbb86ca5c9e78f8507a0675a91f4234231/kvision-common-types-js-6.0.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
