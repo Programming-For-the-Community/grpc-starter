@@ -1,5 +1,6 @@
 # Files
 **/.terraform.lock.hcl
+**/.env.*
 
 # Directories
 .vscode

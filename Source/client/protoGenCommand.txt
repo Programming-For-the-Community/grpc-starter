@@ -1,8 +1,5 @@
 # Install protoc-gen-dart
-dart pub global activate protoc_plugin
-
-# Verify that protoc-gen-dart is installed
-protoc-gen-dart --version
+flutter pub global activate protoc_plugin 21.1.2 # Needs to match the version of the protoc_plugin in pubspec.yaml
 
 # Proto Command to generate Dart files for gRPC Server
 # Make sure that destination directory exists prior to running the command

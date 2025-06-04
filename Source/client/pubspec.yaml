@@ -1,5 +1,5 @@
-name: client
-description: A new Flutter project.
+name: flutter_grpc_example
+description: Flutter project showing how gRPC can be used in concert with a user-facing application
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -13,6 +13,8 @@ dependencies:
   cupertino_icons: ^1.0.2
   grpc: ^4.0.1
   protobuf: ^3.1.0
+  intl: ^0.18.0
+  package_info_plus: ^4.0.0
 
 dev_dependencies:
   flutter_test:
