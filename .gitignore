@@ -9,6 +9,5 @@ node_modules
 dist
 coverage
 **/client/**/.dart_tool
-**/client/
 **/client/**/build
 
