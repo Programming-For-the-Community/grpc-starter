@@ -4,6 +4,9 @@ resource "aws_dynamodb_table" "grpc_users" {
 
   hash_key = "Username"
 
+  stream_enabled = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+
   server_side_encryption {
     enabled     = true
     kms_key_arn = aws_kms_key.grpc_users_table_key.arn

@@ -95,6 +95,15 @@ export interface UserResponse {
   user?: User | undefined;
 }
 
+export interface RealTimeUserResponse {
+  status: TrackerStatus;
+  message: string;
+  /** INSERT, MODIFY, REMOVE */
+  eventType?: string | undefined;
+  userName?: string | undefined;
+  currentLocation?: Location | undefined;
+}
+
 export interface LocationResponse {
   status: TrackerStatus;
   message: string;
@@ -630,6 +639,132 @@ export const UserResponse: MessageFns<UserResponse> = {
   },
 };
 
+function createBaseRealTimeUserResponse(): RealTimeUserResponse {
+  return { status: 0, message: "", eventType: undefined, userName: undefined, currentLocation: undefined };
+}
+
+export const RealTimeUserResponse: MessageFns<RealTimeUserResponse> = {
+  encode(message: RealTimeUserResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.status !== 0) {
+      writer.uint32(8).int32(message.status);
+    }
+    if (message.message !== "") {
+      writer.uint32(18).string(message.message);
+    }
+    if (message.eventType !== undefined) {
+      writer.uint32(26).string(message.eventType);
+    }
+    if (message.userName !== undefined) {
+      writer.uint32(34).string(message.userName);
+    }
+    if (message.currentLocation !== undefined) {
+      Location.encode(message.currentLocation, writer.uint32(42).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RealTimeUserResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRealTimeUserResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.status = reader.int32() as any;
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.eventType = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.userName = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.currentLocation = Location.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RealTimeUserResponse {
+    return {
+      status: isSet(object.status) ? trackerStatusFromJSON(object.status) : 0,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      eventType: isSet(object.eventType) ? globalThis.String(object.eventType) : undefined,
+      userName: isSet(object.userName) ? globalThis.String(object.userName) : undefined,
+      currentLocation: isSet(object.currentLocation) ? Location.fromJSON(object.currentLocation) : undefined,
+    };
+  },
+
+  toJSON(message: RealTimeUserResponse): unknown {
+    const obj: any = {};
+    if (message.status !== 0) {
+      obj.status = trackerStatusToJSON(message.status);
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    if (message.eventType !== undefined) {
+      obj.eventType = message.eventType;
+    }
+    if (message.userName !== undefined) {
+      obj.userName = message.userName;
+    }
+    if (message.currentLocation !== undefined) {
+      obj.currentLocation = Location.toJSON(message.currentLocation);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RealTimeUserResponse>, I>>(base?: I): RealTimeUserResponse {
+    return RealTimeUserResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<RealTimeUserResponse>, I>>(object: I): RealTimeUserResponse {
+    const message = createBaseRealTimeUserResponse();
+    message.status = object.status ?? 0;
+    message.message = object.message ?? "";
+    message.eventType = object.eventType ?? undefined;
+    message.userName = object.userName ?? undefined;
+    message.currentLocation = (object.currentLocation !== undefined && object.currentLocation !== null)
+      ? Location.fromPartial(object.currentLocation)
+      : undefined;
+    return message;
+  },
+};
+
 function createBaseLocationResponse(): LocationResponse {
   return { status: 0, message: "", userName: undefined, location: undefined };
 }
@@ -821,8 +956,8 @@ export const PathRequest: MessageFns<PathRequest> = {
 export interface Tracker {
   /** Create a user */
   CreateUser(request: Username): Promise<UserResponse>;
-  /** Get all the created users */
-  GetUsers(request: Empty): Observable<UserResponse>;
+  /** Provides real-time stream of all users */
+  GetUsers(request: Empty): Observable<RealTimeUserResponse>;
   /** Get the requested user */
   GetUser(request: Username): Promise<UserResponse>;
   /** Stream the location of the provided user */
@@ -865,10 +1000,10 @@ export class TrackerClientImpl implements Tracker {
     return promise.then((data) => UserResponse.decode(new BinaryReader(data)));
   }
 
-  GetUsers(request: Empty): Observable<UserResponse> {
+  GetUsers(request: Empty): Observable<RealTimeUserResponse> {
     const data = Empty.encode(request).finish();
     const result = this.rpc.serverStreamingRequest(this.service, "GetUsers", data);
-    return result.pipe(map((data) => UserResponse.decode(new BinaryReader(data))));
+    return result.pipe(map((data) => RealTimeUserResponse.decode(new BinaryReader(data))));
   }
 
   GetUser(request: Username): Promise<UserResponse> {

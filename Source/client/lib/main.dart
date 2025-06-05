@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'pages/grpc_home.dart';
 import 'singletons/grpc_client.dart';

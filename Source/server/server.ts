@@ -4,6 +4,7 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 
 // Internal Imports
+import { getUsers } from './protoFunctions/getUsers';
 import { createUser } from './protoFunctions/createUser';
 import { logger } from './lib/logger';
 import { serverConfig } from './config/serverConfig';
@@ -35,6 +36,7 @@ const trackerService = grpcObject.tracker.Tracker.service;
 const server: grpc.Server = new grpc.Server();
 server.addService(trackerService, {
   createUser: createUser,
+  getUsers: getUsers,
 });
 
 server.bindAsync(`${serverConfig.host}:${serverConfig.port}`, grpc.ServerCredentials.createInsecure(), (err) => {

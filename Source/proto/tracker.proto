@@ -7,8 +7,8 @@ service Tracker {
     // Create a user
     rpc CreateUser(Username) returns (UserResponse) {}
 
-    // Get all the created users
-    rpc GetUsers(Empty) returns (stream UserResponse) {}
+    // Provides real-time stream of all users
+    rpc GetUsers(Empty) returns (stream RealTimeUserResponse) {}
 
     // Get the requested user
     rpc GetUser(Username) returns (UserResponse) {}
@@ -60,6 +60,14 @@ message UserResponse {
     TrackerStatus status = 1;
     string message = 2;
     optional User user = 3;
+}
+
+message RealTimeUserResponse {
+    TrackerStatus status = 1;
+    string message = 2;
+    optional string eventType = 3; // INSERT, MODIFY, REMOVE
+    optional string userName = 4;
+    optional Location currentLocation = 5;
 }
 
 message LocationResponse {
