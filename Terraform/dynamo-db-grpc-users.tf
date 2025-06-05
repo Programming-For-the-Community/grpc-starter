@@ -4,7 +4,7 @@ resource "aws_dynamodb_table" "grpc_users" {
 
   hash_key = "Username"
 
-  stream_enabled = true
+  stream_enabled   = true
   stream_view_type = "NEW_AND_OLD_IMAGES"
 
   server_side_encryption {
