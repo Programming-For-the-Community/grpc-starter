@@ -22,6 +22,7 @@ data "aws_iam_policy_document" "grpc_dynamodb_assume_role_policy" {
 }
 
 data "aws_iam_policy_document" "grpc_dynamodb_role_policy_document" {
+  // Policy for accessing DynamoDB table
   statement {
     effect = "Allow"
     actions = [
@@ -40,12 +41,6 @@ data "aws_iam_policy_document" "grpc_dynamodb_role_policy_document" {
       "dynamodb:UpdateTable",
       "dynamodb:TagResource",
       "dynamodb:UntagResource",
-
-      // KMS permissions for server-side encryption
-      "kms:Decrypt",
-      "kms:Encrypt",
-      "kms:GenerateDataKey",
-      "kms:DescribeKey"
     ]
     resources = [
       "arn:aws:dynamodb:${var.region}:${var.account_id}:table/${aws_dynamodb_table.grpc_users.name}",
@@ -53,6 +48,7 @@ data "aws_iam_policy_document" "grpc_dynamodb_role_policy_document" {
     ]
   }
 
+  // Policy for accessing DynamoDB stream
   statement {
     effect = "Allow"
     actions = [
@@ -63,6 +59,20 @@ data "aws_iam_policy_document" "grpc_dynamodb_role_policy_document" {
     ]
     resources = [
       "arn:aws:dynamodb:${var.region}:${var.account_id}:table/${aws_dynamodb_table.grpc_users.name}/stream/*"
+    ]
+  }
+
+  // KMS permissions for server-side encryption
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey"
+    ]
+    resources = [
+      "arn:aws:kms:${var.region}:${var.account_id}:key/${aws_kms_key.grpc_users_table_key.key_id}"
     ]
   }
 }
