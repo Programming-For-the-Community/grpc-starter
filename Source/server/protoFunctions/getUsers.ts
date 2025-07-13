@@ -4,7 +4,7 @@ import { GetRecordsOutput } from '@aws-sdk/client-dynamodb-streams';
 
 import { logger } from '../lib/logger';
 import { databaseConfig } from '../config/databaseConfig';
-import { dynamoDBStreamsClient, dynamoDocumentClient } from '../lib/dynamoClient';
+import { getDynamoStreamsClient, getDynamoDocumentClient } from '../lib/dynamoClient';
 import { RealTimeUserResponse, TrackerStatus } from '../protoDefinitions/tracker';
 
 /**
@@ -14,6 +14,12 @@ import { RealTimeUserResponse, TrackerStatus } from '../protoDefinitions/tracker
 export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserResponse>): Promise<void> => {
   try {
     logger.info('Starting real-time streaming for GetUsers.');
+
+    // Initialize DynamoDB clients
+    logger.info('Initializing DynamoDB clients.');
+    const dynamoDBStreamsClient = await getDynamoStreamsClient();
+    const dynamoDocumentClient = await getDynamoDocumentClient();
+    logger.info('DynamoDB clients initialized successfully.');
 
     // Step 1: Query the table for existing data
     const scanCommand = new ScanCommand({ TableName: databaseConfig.tableName });

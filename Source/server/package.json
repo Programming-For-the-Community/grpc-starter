@@ -24,6 +24,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.788.0",
     "@aws-sdk/client-dynamodb-streams": "^3.823.0",
+    "@aws-sdk/client-sts": "^3.844.0",
     "@aws-sdk/lib-dynamodb": "^3.789.0",
     "@grpc/grpc-js": "^1.13.3",
     "@grpc/proto-loader": "^0.7.15",

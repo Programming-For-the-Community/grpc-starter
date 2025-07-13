@@ -3,19 +3,20 @@ import { DynamoDBStreams } from '@aws-sdk/client-dynamodb-streams';
 
 // Internal Imports
 import { databaseConfig } from '../config/databaseConfig';
+import { getAssumedRoleCredentials } from './getAssumedRoleCredentials';
 
-export const dynamoDocumentClient = new DynamoDBClient({
-  region: databaseConfig.awsRegion,
-  credentials: {
-    accessKeyId: databaseConfig.awsAccessKeyId,
-    secretAccessKey: databaseConfig.awsSecretAccessKey,
-  },
-});
+export const getDynamoDocumentClient = async () => {
+  const credentials = await getAssumedRoleCredentials();
+  return new DynamoDBClient({
+    region: databaseConfig.awsRegion,
+    credentials,
+  });
+};
 
-export const dynamoDBStreamsClient = new DynamoDBStreams({
-  region: databaseConfig.awsRegion,
-  credentials: {
-    accessKeyId: databaseConfig.awsAccessKeyId,
-    secretAccessKey: databaseConfig.awsSecretAccessKey,
-  },
-}); // Replace with your AWS region
+export const getDynamoStreamsClient = async () => {
+  const credentials = await getAssumedRoleCredentials();
+  return new DynamoDBStreams({
+    region: databaseConfig.awsRegion,
+    credentials,
+  });
+};

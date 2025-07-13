@@ -7,6 +7,5 @@ export const databaseConfig = {
   tableName: process.env.TABLE_NAME,
   tableStreamArn: process.env.TABLE_STREAM_ARN,
   refreshFrequencyMs: process.env.REFRESH_FREQUENCY_MS ? parseInt(process.env.REFRESH_FREQUENCY_MS) : 1000,
-  awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-  awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+  grpcDynamoDBRoleArn: process.env.GRPC_DYNAMODB_ROLE_ARN,
 };

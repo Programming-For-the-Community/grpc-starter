@@ -1,18 +1,27 @@
-resource "aws_iam_user" "grpc_dynamodb_user" {
-  name = "grpc-dynamodb-user"
+resource "aws_iam_role" "grpc_dynamodb_role" {
+  name = "grpc-dynamodb-role"
+
+  assume_role_policy = data.aws_iam_policy_document.grpc_dynamodb_assume_role_policy.json
 
   tags = {
     Owner       = var.owner
     Project     = var.project
-    Description = "IAM User for gRPC DynamoDB access"
+    Description = "IAM Role for gRPC DynamoDB access"
   }
 }
 
-resource "aws_iam_access_key" "grpc_dynamodb_access_key" {
-  user = aws_iam_user.grpc_dynamodb_user.name
+data "aws_iam_policy_document" "grpc_dynamodb_assume_role_policy" {
+  statement {
+    effect = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${var.account_id}:user/charlie_hahm"]
+    }
+    actions = ["sts:AssumeRole"]
+  }
 }
 
-data "aws_iam_policy_document" "grpc_dynamodb_user_policy_document" {
+data "aws_iam_policy_document" "grpc_dynamodb_role_policy_document" {
   statement {
     effect = "Allow"
     actions = [
@@ -52,20 +61,8 @@ data "aws_iam_policy_document" "grpc_dynamodb_user_policy_document" {
   }
 }
 
-resource "aws_iam_user_policy" "grpc_dynamodb_user_policy" {
-  name   = "grpc-dynamodb-user-policy"
-  user   = aws_iam_user.grpc_dynamodb_user.name
-  policy = data.aws_iam_policy_document.grpc_dynamodb_user_policy_document.json
-}
-
-
-// Output access credentials for server deployment purposes
-output "dynaomdb_access_key_id" {
-  value     = aws_iam_access_key.grpc_dynamodb_access_key.id
-  sensitive = true
-}
-
-output "dynaomdb_secret_access_key" {
-  value     = aws_iam_access_key.grpc_dynamodb_access_key.secret
-  sensitive = true
+resource "aws_iam_role_policy" "grpc_dynamodb_role_policy" {
+  name   = "grpc-dynamodb-role-policy"
+  role   = aws_iam_role.grpc_dynamodb_role.id
+  policy = data.aws_iam_policy_document.grpc_dynamodb_role_policy_document.json
 }
