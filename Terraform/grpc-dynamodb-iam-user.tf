@@ -39,7 +39,13 @@ data "aws_iam_policy_document" "grpc_dynamodb_role_policy_document" {
       "dynamodb:UpdateItem",
       "dynamodb:UpdateTable",
       "dynamodb:TagResource",
-      "dynamodb:UntagResource"
+      "dynamodb:UntagResource",
+
+      // KMS permissions for server-side encryption
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey"
     ]
     resources = [
       "arn:aws:dynamodb:${var.region}:${var.account_id}:table/${aws_dynamodb_table.grpc_users.name}",
