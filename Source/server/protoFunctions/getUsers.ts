@@ -1,63 +1,134 @@
 import { ServerWritableStream } from '@grpc/grpc-js';
+import { ScanCommand } from '@aws-sdk/client-dynamodb';
+import { GetRecordsOutput } from '@aws-sdk/client-dynamodb-streams';
 
 import { logger } from '../lib/logger';
-import { dynamoDBStreamsClient } from '../lib/dynamoClient';
-import { RealTimeUserResponse } from '../protoDefinitions/tracker';
+import { databaseConfig } from '../config/databaseConfig';
+import { dynamoDBStreamsClient, dynamoDocumentClient } from '../lib/dynamoClient';
+import { RealTimeUserResponse, TrackerStatus } from '../protoDefinitions/tracker';
 
 /**
  * Real-time streaming implementation for GetUsers using DynamoDB Streams.
  * @param call gRPC server writable stream.
  */
 export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserResponse>): Promise<void> => {
-    const streamArn = 'arn:aws:dynamodb:us-east-1:123456789012:table/UsersTable/stream/2025-06-04T00:00:00.000'; // Replace with your DynamoDB Stream ARN
-  
-    try {
-      logger.info('Starting real-time streaming for GetUsers.');
-  
-      // Get the shard iterator for the DynamoDB Stream
-      const streamDescription = await dynamoDBStreamsClient.describeStream({ StreamArn: streamArn });
-      const shardId = streamDescription.StreamDescription.Shards[0].ShardId;
-  
-      const shardIteratorResponse = await dynamoDBStreamsClient.getShardIterator({
-        StreamArn: streamArn,
-        ShardId: shardId,
-        ShardIteratorType: 'LATEST', // Start from the latest changes
+  try {
+    logger.info('Starting real-time streaming for GetUsers.');
+
+    // Step 1: Query the table for existing data
+    const scanCommand = new ScanCommand({ TableName: databaseConfig.tableName });
+    const scanResult = await dynamoDocumentClient.send(scanCommand);
+
+    if (scanResult.Items && scanResult.Items.length > 0) {
+      logger.info(`Found ${scanResult.Items.length} existing items in the table.`);
+      for (const item of scanResult.Items) {
+        const response: RealTimeUserResponse = {
+          status: TrackerStatus.OK,
+          message: 'Existing user data retrieved.',
+          eventType: 'EXISTING',
+          userName: item.Username?.S || 'Unknown',
+          currentLocation: {
+            x: parseFloat(item.currentLocation?.M?.x?.N || '0'),
+            y: parseFloat(item.currentLocation?.M?.y?.N || '0'),
+          },
+        };
+        call.write(response);
+      }
+    } else {
+      logger.info('No existing items found in the table.');
+    }
+
+    // Step 2: Process real-time changes from the DynamoDB Stream
+    const streamDescription = await dynamoDBStreamsClient.describeStream({ StreamArn: databaseConfig.tableStreamArn });
+
+    if (!streamDescription || !streamDescription.StreamDescription || !streamDescription.StreamDescription.Shards || streamDescription.StreamDescription.Shards.length === 0) {
+      logger.warn('No shards found in the DynamoDB stream description.');
+
+      call.write({
+        status: TrackerStatus.NO_RECORDS,
+        message: 'No shards found in the DynamoDB stream description.',
       });
-  
-      let shardIterator = shardIteratorResponse.ShardIterator;
-  
-      // Poll the DynamoDB Stream for changes
-      while (shardIterator) {
-        const streamRecords = await dynamoDBStreamsClient.getRecords({ ShardIterator: shardIterator });
-        shardIterator = streamRecords.NextShardIterator;
-  
-        // Process each record in the stream
+      call.end();
+      return;
+    }
+
+    const shardId = streamDescription.StreamDescription.Shards[0].ShardId;
+
+    const shardIteratorResponse = await dynamoDBStreamsClient.getShardIterator({
+      StreamArn: databaseConfig.tableStreamArn,
+      ShardId: shardId,
+      ShardIteratorType: 'LATEST', // Start from the latest changes
+    });
+
+    let shardIterator = shardIteratorResponse?.ShardIterator;
+
+    if (!shardIterator) {
+      logger.warn('Shard iterator could not be retrieved.');
+
+      call.write({
+        status: TrackerStatus.NO_RECORDS,
+        message: 'Shard iterator could not be retrieved.',
+      });
+      call.end();
+      return;
+    }
+
+    // Poll the DynamoDB Stream for changes
+    while (shardIterator) {
+      const streamRecords: GetRecordsOutput = await dynamoDBStreamsClient.getRecords({ ShardIterator: shardIterator });
+      shardIterator = streamRecords?.NextShardIterator;
+
+      if (streamRecords?.Records && streamRecords.Records.length > 0) {
         for (const record of streamRecords.Records) {
           const eventName = record.eventName; // INSERT, MODIFY, REMOVE
           const userData = record.dynamodb?.NewImage;
-  
+
           if (userData) {
-            const response = new RealTimeUserResponse();
-            response.setStatus('OK');
-            response.setMessage('User update');
-            response.setEventType(eventName); // INSERT, MODIFY, REMOVE
-            response.setUserName(userData.name.S);
-            response.setCurrentLocation({
-              x: parseFloat(userData.currentLocation.M.x.N),
-              y: parseFloat(userData.currentLocation.M.y.N),
-            });
-  
+            const response: RealTimeUserResponse = {
+              status: TrackerStatus.OK,
+              message: `Event received: ${eventName} with user data: ${JSON.stringify(userData)}`,
+              eventType: eventName,
+              userName: userData.Username?.S || 'Unknown',
+              currentLocation: {
+                x: parseFloat(userData.currentLocation?.M?.x?.N || '0'),
+                y: parseFloat(userData.currentLocation?.M?.y?.N || '0'),
+              },
+            };
             call.write(response);
+          } else {
+            logger.warn(`No user data found in record: ${JSON.stringify(record)}`);
+            call.write({
+              status: TrackerStatus.MISSING_USER_DATA,
+              message: `No user data found in record: ${JSON.stringify(record)}`,
+            });
           }
         }
-  
-        // Wait before polling again to avoid excessive requests
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else {
+        logger.info('No records found in the stream.');
+        call.write({
+          status: TrackerStatus.NO_RECORDS,
+          message: 'No records found in the stream.',
+        });
       }
-    } catch (error) {
-      logger.error('Error streaming users:', error);
-      call.end(); // End the stream in case of an error
+
+      await new Promise((resolve) => setTimeout(resolve, databaseConfig.refreshFrequencyMs));
     }
-  
-    logger.info('Real-time streaming for GetUsers ended.');
-  };
+  } catch (error) {
+    if (error instanceof Error) {
+      logger.error('Error streaming users:', error);
+      call.write({
+        status: TrackerStatus.USER_STREAM_ERROR,
+        message: `Error streaming users: ${error.message}`,
+      });
+    } else {
+      logger.error('Unknown error occurred:', error);
+      call.write({
+        status: TrackerStatus.USER_STREAM_ERROR,
+        message: 'An unknown error occurred while streaming users.',
+      });
+    }
+    call.end();
+  }
+
+  logger.info('Real-time streaming for GetUsers ended.');
+};

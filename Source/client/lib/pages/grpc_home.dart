@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/new_user_input.dart';
+import '../singletons/grpc_client.dart';
+import '../proto/tracker.pbgrpc.dart';
 
 class GrpcHomePage extends StatefulWidget {
   const GrpcHomePage({super.key, required this.title});
@@ -12,6 +14,7 @@ class GrpcHomePage extends StatefulWidget {
 
 class _GrpcHomePageState extends State<GrpcHomePage> {
   Offset _gridOffset = Offset.zero;
+  final List<RealTimeUserResponse> _users = [];
 
   @override
   void initState() {
@@ -22,6 +25,15 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
         // Center (0,0) on the screen
         _gridOffset = Offset(size.width / 2, size.height / 2);
       });
+    });
+
+    // Start listening to the real-time user stream
+    GrpcClient().trackerClient.getUsers(Empty()).listen((userResponse) {
+      if (userResponse.status == TrackerStatus.OK) {
+        setState(() {
+          _users.add(userResponse);
+        });
+      }
     });
   }
 
@@ -48,35 +60,54 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
               size: Size.infinite,
               painter: CoordinateGridPainter(_gridOffset),
             ),
+            // Floating scrollable box for users
+            Positioned(
+              left: 16,
+              top: 16,
+              bottom: 16,
+              child: Container(
+                width: 250,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4,
+                      offset: Offset(2, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'Available Users',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _users.length,
+                        itemBuilder: (context, index) {
+                          final user = _users[index];
+                          return ListTile(
+                            title: Text(user.userName ?? 'Unknown'),
+                            subtitle: Text(
+                              'Location: (${user.currentLocation?.x ?? 0}, ${user.currentLocation?.y ?? 0})',
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             // Overlay layout
             Row(
               children: [
-                // Left column for listing users
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          'Users',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: 10, // Replace with actual user count
-                          itemBuilder: (context, index) {
-                            return ListTile(
-                              title: Text('User $index'), // Replace with actual user data
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 // Right section for NewUserInput
                 Expanded(
                   flex: 2,

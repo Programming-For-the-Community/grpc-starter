@@ -4,6 +4,18 @@ import { DynamoDBStreams } from '@aws-sdk/client-dynamodb-streams';
 // Internal Imports
 import { databaseConfig } from '../config/databaseConfig';
 
-export const dynamoDocumentClient = new DynamoDBClient({ region: databaseConfig.awsRegion });
+export const dynamoDocumentClient = new DynamoDBClient({
+  region: databaseConfig.awsRegion,
+  credentials: {
+    accessKeyId: databaseConfig.awsAccessKeyId,
+    secretAccessKey: databaseConfig.awsSecretAccessKey,
+  },
+});
 
-export const dynamoDBStreamsClient = new DynamoDBStreams({ region: databaseConfig.awsRegion }); // Replace with your AWS region
+export const dynamoDBStreamsClient = new DynamoDBStreams({
+  region: databaseConfig.awsRegion,
+  credentials: {
+    accessKeyId: databaseConfig.awsAccessKeyId,
+    secretAccessKey: databaseConfig.awsSecretAccessKey,
+  },
+}); // Replace with your AWS region

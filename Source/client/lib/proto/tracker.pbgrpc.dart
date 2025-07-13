@@ -25,10 +25,10 @@ class TrackerClient extends $grpc.Client {
       '/tracker.Tracker/CreateUser',
       ($0.Username value) => value.writeToBuffer(),
       ($core.List<$core.int> value) => $0.UserResponse.fromBuffer(value));
-  static final _$getUsers = $grpc.ClientMethod<$0.Empty, $0.UserResponse>(
+  static final _$getUsers = $grpc.ClientMethod<$0.Empty, $0.RealTimeUserResponse>(
       '/tracker.Tracker/GetUsers',
       ($0.Empty value) => value.writeToBuffer(),
-      ($core.List<$core.int> value) => $0.UserResponse.fromBuffer(value));
+      ($core.List<$core.int> value) => $0.RealTimeUserResponse.fromBuffer(value));
   static final _$getUser = $grpc.ClientMethod<$0.Username, $0.UserResponse>(
       '/tracker.Tracker/GetUser',
       ($0.Username value) => value.writeToBuffer(),
@@ -72,7 +72,7 @@ class TrackerClient extends $grpc.Client {
     return $createUnaryCall(_$createUser, request, options: options);
   }
 
-  $grpc.ResponseStream<$0.UserResponse> getUsers($0.Empty request, {$grpc.CallOptions? options}) {
+  $grpc.ResponseStream<$0.RealTimeUserResponse> getUsers($0.Empty request, {$grpc.CallOptions? options}) {
     return $createStreamingCall(_$getUsers, $async.Stream.fromIterable([request]), options: options);
   }
 
@@ -121,13 +121,13 @@ abstract class TrackerServiceBase extends $grpc.Service {
         false,
         ($core.List<$core.int> value) => $0.Username.fromBuffer(value),
         ($0.UserResponse value) => value.writeToBuffer()));
-    $addMethod($grpc.ServiceMethod<$0.Empty, $0.UserResponse>(
+    $addMethod($grpc.ServiceMethod<$0.Empty, $0.RealTimeUserResponse>(
         'GetUsers',
         getUsers_Pre,
         false,
         true,
         ($core.List<$core.int> value) => $0.Empty.fromBuffer(value),
-        ($0.UserResponse value) => value.writeToBuffer()));
+        ($0.RealTimeUserResponse value) => value.writeToBuffer()));
     $addMethod($grpc.ServiceMethod<$0.Username, $0.UserResponse>(
         'GetUser',
         getUser_Pre,
@@ -190,7 +190,7 @@ abstract class TrackerServiceBase extends $grpc.Service {
     return createUser(call, await request);
   }
 
-  $async.Stream<$0.UserResponse> getUsers_Pre($grpc.ServiceCall call, $async.Future<$0.Empty> request) async* {
+  $async.Stream<$0.RealTimeUserResponse> getUsers_Pre($grpc.ServiceCall call, $async.Future<$0.Empty> request) async* {
     yield* getUsers(call, await request);
   }
 
@@ -223,7 +223,7 @@ abstract class TrackerServiceBase extends $grpc.Service {
   }
 
   $async.Future<$0.UserResponse> createUser($grpc.ServiceCall call, $0.Username request);
-  $async.Stream<$0.UserResponse> getUsers($grpc.ServiceCall call, $0.Empty request);
+  $async.Stream<$0.RealTimeUserResponse> getUsers($grpc.ServiceCall call, $0.Empty request);
   $async.Future<$0.UserResponse> getUser($grpc.ServiceCall call, $0.Username request);
   $async.Stream<$0.UserResponse> getLocation($grpc.ServiceCall call, $0.Username request);
   $async.Future<$0.LocationResponse> getCurrentLocation($grpc.ServiceCall call, $0.Username request);

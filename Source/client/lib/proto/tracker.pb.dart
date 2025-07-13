@@ -361,6 +361,114 @@ class UserResponse extends $pb.GeneratedMessage {
   User ensureUser() => $_ensure(2);
 }
 
+class RealTimeUserResponse extends $pb.GeneratedMessage {
+  factory RealTimeUserResponse({
+    TrackerStatus? status,
+    $core.String? message,
+    $core.String? eventType,
+    $core.String? userName,
+    Location? currentLocation,
+  }) {
+    final $result = create();
+    if (status != null) {
+      $result.status = status;
+    }
+    if (message != null) {
+      $result.message = message;
+    }
+    if (eventType != null) {
+      $result.eventType = eventType;
+    }
+    if (userName != null) {
+      $result.userName = userName;
+    }
+    if (currentLocation != null) {
+      $result.currentLocation = currentLocation;
+    }
+    return $result;
+  }
+  RealTimeUserResponse._() : super();
+  factory RealTimeUserResponse.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory RealTimeUserResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RealTimeUserResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'tracker'), createEmptyInstance: create)
+    ..e<TrackerStatus>(1, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: TrackerStatus.OK, valueOf: TrackerStatus.valueOf, enumValues: TrackerStatus.values)
+    ..aOS(2, _omitFieldNames ? '' : 'message')
+    ..aOS(3, _omitFieldNames ? '' : 'eventType', protoName: 'eventType')
+    ..aOS(4, _omitFieldNames ? '' : 'userName', protoName: 'userName')
+    ..aOM<Location>(5, _omitFieldNames ? '' : 'currentLocation', protoName: 'currentLocation', subBuilder: Location.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  RealTimeUserResponse clone() => RealTimeUserResponse()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  RealTimeUserResponse copyWith(void Function(RealTimeUserResponse) updates) => super.copyWith((message) => updates(message as RealTimeUserResponse)) as RealTimeUserResponse;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RealTimeUserResponse create() => RealTimeUserResponse._();
+  RealTimeUserResponse createEmptyInstance() => create();
+  static $pb.PbList<RealTimeUserResponse> createRepeated() => $pb.PbList<RealTimeUserResponse>();
+  @$core.pragma('dart2js:noInline')
+  static RealTimeUserResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RealTimeUserResponse>(create);
+  static RealTimeUserResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  TrackerStatus get status => $_getN(0);
+  @$pb.TagNumber(1)
+  set status(TrackerStatus v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasStatus() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearStatus() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get message => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set message($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasMessage() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMessage() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get eventType => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set eventType($core.String v) { $_setString(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasEventType() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearEventType() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get userName => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set userName($core.String v) { $_setString(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasUserName() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearUserName() => clearField(4);
+
+  @$pb.TagNumber(5)
+  Location get currentLocation => $_getN(4);
+  @$pb.TagNumber(5)
+  set currentLocation(Location v) { setField(5, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasCurrentLocation() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearCurrentLocation() => clearField(5);
+  @$pb.TagNumber(5)
+  Location ensureCurrentLocation() => $_ensure(4);
+}
+
 class LocationResponse extends $pb.GeneratedMessage {
   factory LocationResponse({
     TrackerStatus? status,

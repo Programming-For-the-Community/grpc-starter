@@ -19,6 +19,9 @@ class TrackerStatus extends $pb.ProtobufEnum {
   static const TrackerStatus USER_NOT_CREATED = TrackerStatus._(401, _omitEnumNames ? '' : 'USER_NOT_CREATED');
   static const TrackerStatus USER_NOT_FOUND = TrackerStatus._(402, _omitEnumNames ? '' : 'USER_NOT_FOUND');
   static const TrackerStatus PATH_NOT_FOUND = TrackerStatus._(403, _omitEnumNames ? '' : 'PATH_NOT_FOUND');
+  static const TrackerStatus NO_RECORDS = TrackerStatus._(404, _omitEnumNames ? '' : 'NO_RECORDS');
+  static const TrackerStatus MISSING_USER_DATA = TrackerStatus._(405, _omitEnumNames ? '' : 'MISSING_USER_DATA');
+  static const TrackerStatus USER_STREAM_ERROR = TrackerStatus._(406, _omitEnumNames ? '' : 'USER_STREAM_ERROR');
 
   static const $core.List<TrackerStatus> values = <TrackerStatus> [
     OK,
@@ -26,6 +29,9 @@ class TrackerStatus extends $pb.ProtobufEnum {
     USER_NOT_CREATED,
     USER_NOT_FOUND,
     PATH_NOT_FOUND,
+    NO_RECORDS,
+    MISSING_USER_DATA,
+    USER_STREAM_ERROR,
   ];
 
   static final $core.Map<$core.int, TrackerStatus> _byValue = $pb.ProtobufEnum.initByValue(values);
