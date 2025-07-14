@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../widgets/new_user_input.dart';
 import '../singletons/grpc_client.dart';
 import '../proto/tracker.pbgrpc.dart';
+import '../singletons/logger.dart';
+import '../painters/coordinate_grid_painter.dart';
+import '../classes/grpc_user.dart';
 
 class GrpcHomePage extends StatefulWidget {
   const GrpcHomePage({super.key, required this.title});
@@ -14,7 +17,19 @@ class GrpcHomePage extends StatefulWidget {
 
 class _GrpcHomePageState extends State<GrpcHomePage> {
   Offset _gridOffset = Offset.zero;
-  final List<RealTimeUserResponse> _users = [];
+  final List<GrpcUser> _users = [];
+  final List<Color> _userColors = [
+    Colors.red,
+    Colors.blue,
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.yellow,
+    Colors.cyan,
+    Colors.pink,
+    Colors.teal,
+    Colors.lime,
+  ];
 
   @override
   void initState() {
@@ -27,14 +42,38 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
       });
     });
 
-    // Start listening to the real-time user stream
-    GrpcClient().trackerClient.getUsers(Empty()).listen((userResponse) {
-      if (userResponse.status == TrackerStatus.OK) {
-        setState(() {
-          _users.add(userResponse);
-        });
+    // Start listening to the real-time user stream with retry logic
+    void startUserStream() async {
+      while (true) {
+        try {
+          await for (RealTimeUserResponse userResponse in GrpcClient().trackerClient.getUsers(Empty())) {
+            if (userResponse.status == TrackerStatus.OK) {
+              setState(() {
+                // Trigger a rebuild to update the UI with new user data
+                final index = _users.indexWhere((user) => user.username == userResponse.userName);
+                if (index != -1) {
+                  // Update existing user location
+                  _users[index].currentX = userResponse.currentLocation.x;
+                  _users[index].currentY = userResponse.currentLocation.y;
+                } else {
+                  // Add new user
+                  _users.add(GrpcUser(
+                    username: userResponse.userName,
+                    currentX: userResponse.currentLocation.x,
+                    currentY: userResponse.currentLocation.y,
+                  ));
+                }
+              });
+            }
+          }
+        } catch (e) {
+          Logger().warning('Connection lost: $e. Retrying in 5 seconds...');
+          await Future.delayed(Duration(seconds: 5));
+        }
       }
-    });
+    }
+
+    startUserStream();
   }
 
   void _onDragUpdate(DragUpdateDetails details) {
@@ -58,7 +97,7 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
             // Draggable grid background
             CustomPaint(
               size: Size.infinite,
-              painter: CoordinateGridPainter(_gridOffset),
+              painter: CoordinateGridPainter(_gridOffset, _users, _userColors),
             ),
             // Floating scrollable box for users
             Positioned(
@@ -92,10 +131,14 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
                         itemCount: _users.length,
                         itemBuilder: (context, index) {
                           final user = _users[index];
+                          final color = _userColors[index % _userColors.length];
                           return ListTile(
-                            title: Text(user.userName ?? 'Unknown'),
+                            title: Text(
+                              user.username ?? 'Unknown',
+                              style: TextStyle(color: color),
+                            ),
                             subtitle: Text(
-                              'Location: (${user.currentLocation?.x ?? 0}, ${user.currentLocation?.y ?? 0})',
+                              'Location: (${user.currentX}, ${user.currentY})',
                             ),
                           );
                         },
@@ -126,38 +169,4 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
       ),
     );
   }
-}
-
-class CoordinateGridPainter extends CustomPainter {
-  final Offset offset;
-
-  CoordinateGridPainter(this.offset);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.grey
-      ..strokeWidth = 0.5;
-
-    // Draw vertical lines
-    for (double x = -10000; x <= 10000; x += 10) {
-      canvas.drawLine(
-        Offset(x + offset.dx, -10000 + offset.dy),
-        Offset(x + offset.dx, 10000 + offset.dy),
-        paint,
-      );
-    }
-
-    // Draw horizontal lines
-    for (double y = -10000; y <= 10000; y += 10) {
-      canvas.drawLine(
-        Offset(-10000 + offset.dx, y + offset.dy),
-        Offset(10000 + offset.dx, y + offset.dy),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }

@@ -52,8 +52,8 @@ export async function createUser(call: grpc.ServerUnaryCall<Username, UserRespon
       TableName: databaseConfig.tableName ?? '',
       Item: {
         Username: { S: name },
-        CurrentLocation: { S: JSON.stringify(newUser.currentLocation) },
-        User: { S: JSON.stringify(newUser) },
+        CurrentLocation: { M: { x: { N: (newUser.currentLocation?.x ?? 0).toString() }, y: { N: (newUser.currentLocation?.y ?? 0).toString() } } },
+        PathsTraveled: { M: {} },
       },
     };
 

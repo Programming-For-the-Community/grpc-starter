@@ -28,14 +28,16 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
     if (scanResult.Items && scanResult.Items.length > 0) {
       logger.info(`Found ${scanResult.Items.length} existing items in the table.`);
       for (const item of scanResult.Items) {
+        logger.debug('Processing item:', JSON.stringify(item));
+
         const response: RealTimeUserResponse = {
           status: TrackerStatus.OK,
           message: 'Existing user data retrieved.',
           eventType: 'EXISTING',
           userName: item.Username?.S || 'Unknown',
           currentLocation: {
-            x: parseFloat(item.currentLocation?.M?.x?.N || '0'),
-            y: parseFloat(item.currentLocation?.M?.y?.N || '0'),
+            x: parseFloat(item.CurrentLocation?.M?.x?.N || '0'),
+            y: parseFloat(item.CurrentLocation?.M?.y?.N || '0'),
           },
         };
         call.write(response);
@@ -46,10 +48,10 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
 
     // Step 2: Process real-time changes from the DynamoDB Stream
     const streamDescription = await dynamoDBStreamsClient.describeStream({ StreamArn: databaseConfig.tableStreamArn });
+    const shards = streamDescription.StreamDescription?.Shards || [];
 
-    if (!streamDescription || !streamDescription.StreamDescription || !streamDescription.StreamDescription.Shards || streamDescription.StreamDescription.Shards.length === 0) {
+    if (shards.length === 0) {
       logger.warn('No shards found in the DynamoDB stream description.');
-
       call.write({
         status: TrackerStatus.NO_RECORDS,
         message: 'No shards found in the DynamoDB stream description.',
@@ -58,66 +60,71 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
       return;
     }
 
-    const shardId = streamDescription.StreamDescription.Shards[0].ShardId;
+    const shardIterators: { [shardId: string]: string | undefined } = {};
 
-    const shardIteratorResponse = await dynamoDBStreamsClient.getShardIterator({
-      StreamArn: databaseConfig.tableStreamArn,
-      ShardId: shardId,
-      ShardIteratorType: 'LATEST', // Start from the latest changes
-    });
+    // Poll all shards
+    while (true) {
+      // Refresh shards periodically
+      const streamDescription = await dynamoDBStreamsClient.describeStream({ StreamArn: databaseConfig.tableStreamArn });
+      const shards = streamDescription.StreamDescription?.Shards || [];
 
-    let shardIterator = shardIteratorResponse?.ShardIterator;
-
-    if (!shardIterator) {
-      logger.warn('Shard iterator could not be retrieved.');
-
-      call.write({
-        status: TrackerStatus.NO_RECORDS,
-        message: 'Shard iterator could not be retrieved.',
-      });
-      call.end();
-      return;
-    }
-
-    // Poll the DynamoDB Stream for changes
-    while (shardIterator) {
-      const streamRecords: GetRecordsOutput = await dynamoDBStreamsClient.getRecords({ ShardIterator: shardIterator });
-      shardIterator = streamRecords?.NextShardIterator;
-
-      if (streamRecords?.Records && streamRecords.Records.length > 0) {
-        for (const record of streamRecords.Records) {
-          const eventName = record.eventName; // INSERT, MODIFY, REMOVE
-          const userData = record.dynamodb?.NewImage;
-
-          if (userData) {
-            const response: RealTimeUserResponse = {
-              status: TrackerStatus.OK,
-              message: `Event received: ${eventName} with user data: ${JSON.stringify(userData)}`,
-              eventType: eventName,
-              userName: userData.Username?.S || 'Unknown',
-              currentLocation: {
-                x: parseFloat(userData.currentLocation?.M?.x?.N || '0'),
-                y: parseFloat(userData.currentLocation?.M?.y?.N || '0'),
-              },
-            };
-            call.write(response);
-          } else {
-            logger.warn(`No user data found in record: ${JSON.stringify(record)}`);
-            call.write({
-              status: TrackerStatus.MISSING_USER_DATA,
-              message: `No user data found in record: ${JSON.stringify(record)}`,
-            });
-          }
+      for (const shard of shards) {
+        if (!shard || !shard.ShardId) {
+          logger.warn('Shard is undefined or missing ShardId.');
+          continue;
         }
-      } else {
-        logger.info('No records found in the stream.');
-        call.write({
-          status: TrackerStatus.NO_RECORDS,
-          message: 'No records found in the stream.',
-        });
+
+        if (!shardIterators[shard.ShardId]) {
+          const shardIteratorResponse = await dynamoDBStreamsClient.getShardIterator({
+            StreamArn: databaseConfig.tableStreamArn,
+            ShardId: shard.ShardId,
+            ShardIteratorType: 'LATEST',
+          });
+
+          shardIterators[shard.ShardId] = shardIteratorResponse?.ShardIterator;
+        }
       }
 
-      await new Promise((resolve) => setTimeout(resolve, databaseConfig.refreshFrequencyMs));
+      for (const shardId of Object.keys(shardIterators)) {
+        const iterator = shardIterators[shardId];
+        if (!iterator) continue;
+
+        const streamRecords: GetRecordsOutput = await dynamoDBStreamsClient.getRecords({ ShardIterator: iterator });
+        shardIterators[shardId] = streamRecords?.NextShardIterator;
+
+        if (streamRecords?.Records && streamRecords.Records.length > 0) {
+          // active = true; // Keep polling if there are records
+          for (const record of streamRecords.Records) {
+            const eventName = record.eventName;
+            const userData = record.dynamodb?.NewImage;
+            if (userData) {
+              const response: RealTimeUserResponse = {
+                status: TrackerStatus.OK,
+                message: `Event received: ${eventName} with user data: ${JSON.stringify(userData)}`,
+                eventType: eventName,
+                userName: userData.Username?.S || 'Unknown',
+                currentLocation: {
+                  x: parseFloat(userData.CurrentLocation?.M?.x?.N || '0'),
+                  y: parseFloat(userData.CurrentLocation?.M?.y?.N || '0'),
+                },
+              };
+              call.write(response);
+            } else {
+              logger.warn(`No user data found in record: ${JSON.stringify(record)}`);
+              call.write({
+                status: TrackerStatus.MISSING_USER_DATA,
+                message: `No user data found in record: ${JSON.stringify(record)}`,
+              });
+            }
+          }
+        } else {
+          logger.info('No records found in the stream.');
+          call.write({
+            status: TrackerStatus.NO_RECORDS,
+            message: 'No records found in the stream.',
+          });
+        }
+      }
     }
   } catch (error) {
     if (error instanceof Error) {
