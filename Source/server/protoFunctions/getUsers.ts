@@ -1,11 +1,13 @@
+import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { ServerWritableStream } from '@grpc/grpc-js';
-import { ScanCommand } from '@aws-sdk/client-dynamodb';
-import { GetRecordsOutput } from '@aws-sdk/client-dynamodb-streams';
+import { DynamoDBStreams } from '@aws-sdk/client-dynamodb-streams';
+import { ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { DescribeStreamCommandOutput, GetRecordsOutput } from '@aws-sdk/client-dynamodb-streams';
 
 import { logger } from '../lib/logger';
 import { databaseConfig } from '../config/databaseConfig';
 import { getDynamoStreamsClient, getDynamoDocumentClient } from '../lib/dynamoClient';
-import { RealTimeUserResponse, TrackerStatus } from '../protoDefinitions/tracker';
+import { RealTimeUserResponse, TrackerStatus, DynamoDBEvent, dynamoDBEventFromJSON } from '../protoDefinitions/tracker';
 
 /**
  * Real-time streaming implementation for GetUsers using DynamoDB Streams.
@@ -17,12 +19,12 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
 
     // Initialize DynamoDB clients
     logger.info('Initializing DynamoDB clients.');
-    const dynamoDBStreamsClient = await getDynamoStreamsClient();
-    const dynamoDocumentClient = await getDynamoDocumentClient();
+    const dynamoDBStreamsClient: DynamoDBStreams = await getDynamoStreamsClient();
+    const dynamoDocumentClient: DynamoDBDocumentClient = await getDynamoDocumentClient();
     logger.info('DynamoDB clients initialized successfully.');
 
     // Step 1: Query the table for existing data
-    const scanCommand = new ScanCommand({ TableName: databaseConfig.tableName });
+    const scanCommand: ScanCommand = new ScanCommand({ TableName: databaseConfig.tableName });
     const scanResult = await dynamoDocumentClient.send(scanCommand);
 
     if (scanResult.Items && scanResult.Items.length > 0) {
@@ -33,11 +35,11 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
         const response: RealTimeUserResponse = {
           status: TrackerStatus.OK,
           message: 'Existing user data retrieved.',
-          eventType: 'EXISTING',
-          userName: item.Username?.S || 'Unknown',
+          eventType: DynamoDBEvent.EXISTING,
+          userName: item.Username || 'Unknown',
           currentLocation: {
-            x: parseFloat(item.CurrentLocation?.M?.x?.N || '0'),
-            y: parseFloat(item.CurrentLocation?.M?.y?.N || '0'),
+            x: parseFloat(item.CurrentLocation?.x),
+            y: parseFloat(item.CurrentLocation?.y),
           },
         };
         call.write(response);
@@ -47,25 +49,12 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
     }
 
     // Step 2: Process real-time changes from the DynamoDB Stream
-    const streamDescription = await dynamoDBStreamsClient.describeStream({ StreamArn: databaseConfig.tableStreamArn });
-    const shards = streamDescription.StreamDescription?.Shards || [];
-
-    if (shards.length === 0) {
-      logger.warn('No shards found in the DynamoDB stream description.');
-      call.write({
-        status: TrackerStatus.NO_RECORDS,
-        message: 'No shards found in the DynamoDB stream description.',
-      });
-      call.end();
-      return;
-    }
-
     const shardIterators: { [shardId: string]: string | undefined } = {};
 
     // Poll all shards
     while (true) {
       // Refresh shards periodically
-      const streamDescription = await dynamoDBStreamsClient.describeStream({ StreamArn: databaseConfig.tableStreamArn });
+      const streamDescription: DescribeStreamCommandOutput = await dynamoDBStreamsClient.describeStream({ StreamArn: databaseConfig.tableStreamArn });
       const shards = streamDescription.StreamDescription?.Shards || [];
 
       for (const shard of shards) {
@@ -95,19 +84,30 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
         if (streamRecords?.Records && streamRecords.Records.length > 0) {
           // active = true; // Keep polling if there are records
           for (const record of streamRecords.Records) {
-            const eventName = record.eventName;
-            const userData = record.dynamodb?.NewImage;
-            if (userData) {
+            const eventName: DynamoDBEvent = dynamoDBEventFromJSON(record.eventName);
+            let rawData: Record<string, any> | undefined;
+
+            // Set the rawData to the OldImage to capture REMOVE events
+            if (eventName === DynamoDBEvent.REMOVE) {
+              rawData = record.dynamodb?.OldImage;
+            } else {
+              rawData = record.dynamodb?.NewImage;
+            }
+
+            if (rawData) {
+              const userData = unmarshall(rawData);
+
               const response: RealTimeUserResponse = {
                 status: TrackerStatus.OK,
                 message: `Event received: ${eventName} with user data: ${JSON.stringify(userData)}`,
                 eventType: eventName,
-                userName: userData.Username?.S || 'Unknown',
+                userName: userData.Username,
                 currentLocation: {
-                  x: parseFloat(userData.CurrentLocation?.M?.x?.N || '0'),
-                  y: parseFloat(userData.CurrentLocation?.M?.y?.N || '0'),
+                  x: parseFloat(userData.CurrentLocation?.x),
+                  y: parseFloat(userData.CurrentLocation?.y),
                 },
               };
+
               call.write(response);
             } else {
               logger.warn(`No user data found in record: ${JSON.stringify(record)}`);

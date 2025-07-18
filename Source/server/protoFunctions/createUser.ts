@@ -1,5 +1,5 @@
 import * as grpc from '@grpc/grpc-js';
-import { PutItemCommand, PutItemCommandInput, GetItemCommand, GetItemCommandInput, DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { PutCommand, GetCommand, PutCommandInput, GetCommandInput, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 // Internal Imports
 import { logger } from '../lib/logger';
@@ -9,21 +9,21 @@ import { User, UserResponse, Username, TrackerStatus } from '../protoDefinitions
 
 export async function createUser(call: grpc.ServerUnaryCall<Username, UserResponse>, callback: grpc.sendUnaryData<UserResponse>) {
   const { name } = call.request;
-  let dynamoDocumentClient: DynamoDBClient | undefined = undefined;
+  let dynamoDocumentClient: DynamoDBDocumentClient | undefined = undefined;
   // Check if the user already exists
   try {
     logger.info('Initializing dynamoDB clients for user creation.');
     dynamoDocumentClient = await getDynamoDocumentClient();
     logger.info('DynamoDB clients initialized successfully for user creation.');
 
-    const getItemParams: GetItemCommandInput = {
+    const getItemParams: GetCommandInput = {
       TableName: databaseConfig.tableName ?? '',
       Key: {
-        Username: { S: name },
+        Username: name,
       },
     };
 
-    const getCommand: GetItemCommand = new GetItemCommand(getItemParams);
+    const getCommand: GetCommand = new GetCommand(getItemParams);
 
     const { Item } = await dynamoDocumentClient.send(getCommand);
 
@@ -48,16 +48,26 @@ export async function createUser(call: grpc.ServerUnaryCall<Username, UserRespon
     };
 
     // Create user in database
-    const newUserParams: PutItemCommandInput = {
+    const newUserParams: PutCommandInput = {
       TableName: databaseConfig.tableName ?? '',
       Item: {
-        Username: { S: name },
-        CurrentLocation: { M: { x: { N: (newUser.currentLocation?.x ?? 0).toString() }, y: { N: (newUser.currentLocation?.y ?? 0).toString() } } },
-        PathsTraveled: { M: {} },
+        Username: name,
+        CurrentLocation: {
+          x: newUser.currentLocation?.x,
+          y: newUser.currentLocation?.y,
+        },
+        PathsTraveled: {
+          0: [
+            {
+              x: 0,
+              y: 0,
+            },
+          ],
+        },
       },
     };
 
-    const putCommand: PutItemCommand = new PutItemCommand(newUserParams);
+    const putCommand: PutCommand = new PutCommand(newUserParams);
 
     await dynamoDocumentClient.send(putCommand);
     logger.info(`User ${name} created successfully in DynamoDB.`);

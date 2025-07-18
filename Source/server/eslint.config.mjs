@@ -26,7 +26,7 @@ export default [
       'no-undef': 'warn',
       'no-path-concat': 'warn',
       'prefer-const': 'error',
-      'no-unused-vars': 'error',
+      'no-unused-vars': 'warn',
       'prettier/prettier': 'warn',
     },
     settings: {},

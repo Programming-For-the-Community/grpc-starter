@@ -80,6 +80,51 @@ export function trackerStatusToJSON(object: TrackerStatus): string {
   }
 }
 
+export enum DynamoDBEvent {
+  INSERT = 0,
+  MODIFY = 1,
+  EXISTING = 2,
+  REMOVE = 3,
+  UNRECOGNIZED = -1,
+}
+
+export function dynamoDBEventFromJSON(object: any): DynamoDBEvent {
+  switch (object) {
+    case 0:
+    case "INSERT":
+      return DynamoDBEvent.INSERT;
+    case 1:
+    case "MODIFY":
+      return DynamoDBEvent.MODIFY;
+    case 2:
+    case "EXISTING":
+      return DynamoDBEvent.EXISTING;
+    case 3:
+    case "REMOVE":
+      return DynamoDBEvent.REMOVE;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return DynamoDBEvent.UNRECOGNIZED;
+  }
+}
+
+export function dynamoDBEventToJSON(object: DynamoDBEvent): string {
+  switch (object) {
+    case DynamoDBEvent.INSERT:
+      return "INSERT";
+    case DynamoDBEvent.MODIFY:
+      return "MODIFY";
+    case DynamoDBEvent.EXISTING:
+      return "EXISTING";
+    case DynamoDBEvent.REMOVE:
+      return "REMOVE";
+    case DynamoDBEvent.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface Empty {
 }
 
@@ -116,8 +161,7 @@ export interface UserResponse {
 export interface RealTimeUserResponse {
   status: TrackerStatus;
   message: string;
-  /** INSERT, MODIFY, REMOVE */
-  eventType?: string | undefined;
+  eventType?: DynamoDBEvent | undefined;
   userName?: string | undefined;
   currentLocation?: Location | undefined;
 }
@@ -670,7 +714,7 @@ export const RealTimeUserResponse: MessageFns<RealTimeUserResponse> = {
       writer.uint32(18).string(message.message);
     }
     if (message.eventType !== undefined) {
-      writer.uint32(26).string(message.eventType);
+      writer.uint32(24).int32(message.eventType);
     }
     if (message.userName !== undefined) {
       writer.uint32(34).string(message.userName);
@@ -705,11 +749,11 @@ export const RealTimeUserResponse: MessageFns<RealTimeUserResponse> = {
           continue;
         }
         case 3: {
-          if (tag !== 26) {
+          if (tag !== 24) {
             break;
           }
 
-          message.eventType = reader.string();
+          message.eventType = reader.int32() as any;
           continue;
         }
         case 4: {
@@ -741,7 +785,7 @@ export const RealTimeUserResponse: MessageFns<RealTimeUserResponse> = {
     return {
       status: isSet(object.status) ? trackerStatusFromJSON(object.status) : 0,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
-      eventType: isSet(object.eventType) ? globalThis.String(object.eventType) : undefined,
+      eventType: isSet(object.eventType) ? dynamoDBEventFromJSON(object.eventType) : undefined,
       userName: isSet(object.userName) ? globalThis.String(object.userName) : undefined,
       currentLocation: isSet(object.currentLocation) ? Location.fromJSON(object.currentLocation) : undefined,
     };
@@ -756,7 +800,7 @@ export const RealTimeUserResponse: MessageFns<RealTimeUserResponse> = {
       obj.message = message.message;
     }
     if (message.eventType !== undefined) {
-      obj.eventType = message.eventType;
+      obj.eventType = dynamoDBEventToJSON(message.eventType);
     }
     if (message.userName !== undefined) {
       obj.userName = message.userName;

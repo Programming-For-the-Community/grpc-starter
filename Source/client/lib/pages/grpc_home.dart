@@ -18,6 +18,7 @@ class GrpcHomePage extends StatefulWidget {
 class _GrpcHomePageState extends State<GrpcHomePage> {
   Offset _gridOffset = Offset.zero;
   final List<GrpcUser> _users = [];
+  GrpcUser? _selectedUser; // Track the selected user
   final List<Color> _userColors = [
     Colors.red,
     Colors.blue,
@@ -42,26 +43,51 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
       });
     });
 
-    // Start listening to the real-time user stream with retry logic
     void startUserStream() async {
       while (true) {
         try {
           await for (RealTimeUserResponse userResponse in GrpcClient().trackerClient.getUsers(Empty())) {
             if (userResponse.status == TrackerStatus.OK) {
               setState(() {
-                // Trigger a rebuild to update the UI with new user data
-                final index = _users.indexWhere((user) => user.username == userResponse.userName);
-                if (index != -1) {
-                  // Update existing user location
-                  _users[index].currentX = userResponse.currentLocation.x;
-                  _users[index].currentY = userResponse.currentLocation.y;
-                } else {
-                  // Add new user
+                // Insert new user
+                if (userResponse.eventType == DynamoDBEvent.EXISTING) {
                   _users.add(GrpcUser(
                     username: userResponse.userName,
                     currentX: userResponse.currentLocation.x,
                     currentY: userResponse.currentLocation.y,
                   ));
+
+                // if existing, check if user already exists and update if it does, otherwise insert
+                } else if (userResponse.eventType == DynamoDBEvent.EXISTING) {
+                  final index = _users.indexWhere((user) => user.username == userResponse.userName);
+                  if (index != -1) {
+                    _users[index] = GrpcUser(
+                      username: userResponse.userName,
+                      currentX: userResponse.currentLocation.x,
+                      currentY: userResponse.currentLocation.y,
+                    );
+                  } else {
+                    _users.add(GrpcUser(
+                      username: userResponse.userName,
+                      currentX: userResponse.currentLocation.x,
+                      currentY: userResponse.currentLocation.y,
+                    ));
+                  }
+
+                // Update existing user
+                } else if(userResponse.eventType == DynamoDBEvent.MODIFY) {
+                  final index = _users.indexWhere((user) => user.username == userResponse.userName);
+                  if (index != -1) {
+                    _users[index] = GrpcUser(
+                      username: userResponse.userName,
+                      currentX: userResponse.currentLocation.x,
+                      currentY: userResponse.currentLocation.y,
+                    );
+                  }
+
+                // Delete user
+                } else if(userResponse.eventType == DynamoDBEvent.REMOVE) {
+                  _users.removeWhere((user) => user.username == userResponse.userName);
                 }
               });
             }
@@ -78,11 +104,17 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
 
   void _onDragUpdate(DragUpdateDetails details) {
     setState(() {
-      // Update offset while clamping within ±10,000 pixels
       _gridOffset = Offset(
         (_gridOffset.dx + details.delta.dx).clamp(-10000.0, 10000.0),
         (_gridOffset.dy + details.delta.dy).clamp(-10000.0, 10000.0),
       );
+    });
+  }
+
+  void _centerUser(GrpcUser user) {
+    setState(() {
+      _gridOffset = Offset(-user.currentX, user.currentY); // Center the grid on the user's location
+      _selectedUser = user; // Set the selected user
     });
   }
 
@@ -94,12 +126,10 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
         onPanUpdate: _onDragUpdate,
         child: Stack(
           children: [
-            // Draggable grid background
             CustomPaint(
               size: Size.infinite,
               painter: CoordinateGridPainter(_gridOffset, _users, _userColors),
             ),
-            // Floating scrollable box for users
             Positioned(
               left: 16,
               top: 16,
@@ -140,6 +170,7 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
                             subtitle: Text(
                               'Location: (${user.currentX}, ${user.currentY})',
                             ),
+                            onTap: () => _centerUser(user), // Center the user on tap
                           );
                         },
                       ),
@@ -148,10 +179,8 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
                 ),
               ),
             ),
-            // Overlay layout
             Row(
               children: [
-                // Right section for NewUserInput
                 Expanded(
                   flex: 2,
                   child: Align(

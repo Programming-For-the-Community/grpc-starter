@@ -35,6 +35,22 @@ final $typed_data.Uint8List trackerStatusDescriptor = $convert.base64Decode(
     'EJMDEg8KCk5PX1JFQ09SRFMQlAMSFgoRTUlTU0lOR19VU0VSX0RBVEEQlQMSFgoRVVNFUl9TVF'
     'JFQU1fRVJST1IQlgM=');
 
+@$core.Deprecated('Use dynamoDBEventDescriptor instead')
+const DynamoDBEvent$json = {
+  '1': 'DynamoDBEvent',
+  '2': [
+    {'1': 'INSERT', '2': 0},
+    {'1': 'MODIFY', '2': 1},
+    {'1': 'EXISTING', '2': 2},
+    {'1': 'REMOVE', '2': 3},
+  ],
+};
+
+/// Descriptor for `DynamoDBEvent`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List dynamoDBEventDescriptor = $convert.base64Decode(
+    'Cg1EeW5hbW9EQkV2ZW50EgoKBklOU0VSVBAAEgoKBk1PRElGWRABEgwKCEVYSVNUSU5HEAISCg'
+    'oGUkVNT1ZFEAM=');
+
 @$core.Deprecated('Use emptyDescriptor instead')
 const Empty$json = {
   '1': 'Empty',
@@ -141,7 +157,7 @@ const RealTimeUserResponse$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 14, '6': '.tracker.TrackerStatus', '10': 'status'},
     {'1': 'message', '3': 2, '4': 1, '5': 9, '10': 'message'},
-    {'1': 'eventType', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'eventType', '17': true},
+    {'1': 'eventType', '3': 3, '4': 1, '5': 14, '6': '.tracker.DynamoDBEvent', '9': 0, '10': 'eventType', '17': true},
     {'1': 'userName', '3': 4, '4': 1, '5': 9, '9': 1, '10': 'userName', '17': true},
     {'1': 'currentLocation', '3': 5, '4': 1, '5': 11, '6': '.tracker.Location', '9': 2, '10': 'currentLocation', '17': true},
   ],
@@ -155,11 +171,11 @@ const RealTimeUserResponse$json = {
 /// Descriptor for `RealTimeUserResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List realTimeUserResponseDescriptor = $convert.base64Decode(
     'ChRSZWFsVGltZVVzZXJSZXNwb25zZRIuCgZzdGF0dXMYASABKA4yFi50cmFja2VyLlRyYWNrZX'
-    'JTdGF0dXNSBnN0YXR1cxIYCgdtZXNzYWdlGAIgASgJUgdtZXNzYWdlEiEKCWV2ZW50VHlwZRgD'
-    'IAEoCUgAUglldmVudFR5cGWIAQESHwoIdXNlck5hbWUYBCABKAlIAVIIdXNlck5hbWWIAQESQA'
-    'oPY3VycmVudExvY2F0aW9uGAUgASgLMhEudHJhY2tlci5Mb2NhdGlvbkgCUg9jdXJyZW50TG9j'
-    'YXRpb26IAQFCDAoKX2V2ZW50VHlwZUILCglfdXNlck5hbWVCEgoQX2N1cnJlbnRMb2NhdGlvbg'
-    '==');
+    'JTdGF0dXNSBnN0YXR1cxIYCgdtZXNzYWdlGAIgASgJUgdtZXNzYWdlEjkKCWV2ZW50VHlwZRgD'
+    'IAEoDjIWLnRyYWNrZXIuRHluYW1vREJFdmVudEgAUglldmVudFR5cGWIAQESHwoIdXNlck5hbW'
+    'UYBCABKAlIAVIIdXNlck5hbWWIAQESQAoPY3VycmVudExvY2F0aW9uGAUgASgLMhEudHJhY2tl'
+    'ci5Mb2NhdGlvbkgCUg9jdXJyZW50TG9jYXRpb26IAQFCDAoKX2V2ZW50VHlwZUILCglfdXNlck'
+    '5hbWVCEgoQX2N1cnJlbnRMb2NhdGlvbg==');
 
 @$core.Deprecated('Use locationResponseDescriptor instead')
 const LocationResponse$json = {

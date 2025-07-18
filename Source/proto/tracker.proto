@@ -65,7 +65,7 @@ message UserResponse {
 message RealTimeUserResponse {
     TrackerStatus status = 1;
     string message = 2;
-    optional string eventType = 3; // INSERT, MODIFY, REMOVE
+    optional DynamoDBEvent eventType = 3;
     optional string userName = 4;
     optional Location currentLocation = 5;
 }
@@ -91,4 +91,11 @@ enum TrackerStatus {
     NO_RECORDS = 404;
     MISSING_USER_DATA = 405;
     USER_STREAM_ERROR = 406;
+}
+
+enum DynamoDBEvent {
+    INSERT = 0;
+    MODIFY = 1;
+    EXISTING = 2;
+    REMOVE = 3;
 }

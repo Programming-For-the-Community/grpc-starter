@@ -365,7 +365,7 @@ class RealTimeUserResponse extends $pb.GeneratedMessage {
   factory RealTimeUserResponse({
     TrackerStatus? status,
     $core.String? message,
-    $core.String? eventType,
+    DynamoDBEvent? eventType,
     $core.String? userName,
     Location? currentLocation,
   }) {
@@ -394,7 +394,7 @@ class RealTimeUserResponse extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RealTimeUserResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'tracker'), createEmptyInstance: create)
     ..e<TrackerStatus>(1, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: TrackerStatus.OK, valueOf: TrackerStatus.valueOf, enumValues: TrackerStatus.values)
     ..aOS(2, _omitFieldNames ? '' : 'message')
-    ..aOS(3, _omitFieldNames ? '' : 'eventType', protoName: 'eventType')
+    ..e<DynamoDBEvent>(3, _omitFieldNames ? '' : 'eventType', $pb.PbFieldType.OE, protoName: 'eventType', defaultOrMaker: DynamoDBEvent.INSERT, valueOf: DynamoDBEvent.valueOf, enumValues: DynamoDBEvent.values)
     ..aOS(4, _omitFieldNames ? '' : 'userName', protoName: 'userName')
     ..aOM<Location>(5, _omitFieldNames ? '' : 'currentLocation', protoName: 'currentLocation', subBuilder: Location.create)
     ..hasRequiredFields = false
@@ -440,9 +440,9 @@ class RealTimeUserResponse extends $pb.GeneratedMessage {
   void clearMessage() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get eventType => $_getSZ(2);
+  DynamoDBEvent get eventType => $_getN(2);
   @$pb.TagNumber(3)
-  set eventType($core.String v) { $_setString(2, v); }
+  set eventType(DynamoDBEvent v) { setField(3, v); }
   @$pb.TagNumber(3)
   $core.bool hasEventType() => $_has(2);
   @$pb.TagNumber(3)

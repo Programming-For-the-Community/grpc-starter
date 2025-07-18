@@ -1,16 +1,19 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBStreams } from '@aws-sdk/client-dynamodb-streams';
 
 // Internal Imports
 import { databaseConfig } from '../config/databaseConfig';
 import { getAssumedRoleCredentials } from './getAssumedRoleCredentials';
 
-export const getDynamoDocumentClient = async () => {
+export const getDynamoDocumentClient = async (): Promise<DynamoDBDocumentClient> => {
   const credentials = await getAssumedRoleCredentials();
-  return new DynamoDBClient({
+  const dbClient: DynamoDBClient = new DynamoDBClient({
     region: databaseConfig.awsRegion,
     credentials,
   });
+
+  return DynamoDBDocumentClient.from(dbClient);
 };
 
 export const getDynamoStreamsClient = async () => {

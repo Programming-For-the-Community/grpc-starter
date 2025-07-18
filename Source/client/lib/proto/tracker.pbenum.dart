@@ -40,5 +40,24 @@ class TrackerStatus extends $pb.ProtobufEnum {
   const TrackerStatus._($core.int v, $core.String n) : super(v, n);
 }
 
+class DynamoDBEvent extends $pb.ProtobufEnum {
+  static const DynamoDBEvent INSERT = DynamoDBEvent._(0, _omitEnumNames ? '' : 'INSERT');
+  static const DynamoDBEvent MODIFY = DynamoDBEvent._(1, _omitEnumNames ? '' : 'MODIFY');
+  static const DynamoDBEvent EXISTING = DynamoDBEvent._(2, _omitEnumNames ? '' : 'EXISTING');
+  static const DynamoDBEvent REMOVE = DynamoDBEvent._(3, _omitEnumNames ? '' : 'REMOVE');
+
+  static const $core.List<DynamoDBEvent> values = <DynamoDBEvent> [
+    INSERT,
+    MODIFY,
+    EXISTING,
+    REMOVE,
+  ];
+
+  static final $core.Map<$core.int, DynamoDBEvent> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static DynamoDBEvent? valueOf($core.int value) => _byValue[value];
+
+  const DynamoDBEvent._($core.int v, $core.String n) : super(v, n);
+}
+
 
 const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');
