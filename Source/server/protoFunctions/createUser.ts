@@ -1,34 +1,32 @@
 import * as grpc from '@grpc/grpc-js';
-import { PutCommand, GetCommand, PutCommandInput, GetCommandInput, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 // Internal Imports
 import { logger } from '../lib/logger';
-import { getDynamoDocumentClient } from '../lib/dynamoClient';
-import { databaseConfig } from '../config/databaseConfig';
+import { dynamoClient } from '../lib/dynamoClient';
 import { User, UserResponse, Username, TrackerStatus } from '../protoDefinitions/tracker';
 
+/**
+ * Creates a new user in the DynamoDB database.
+ * @param call gRPC server unary call containing the username.
+ * @param callback grpc callback to send the response.
+ */
 export async function createUser(call: grpc.ServerUnaryCall<Username, UserResponse>, callback: grpc.sendUnaryData<UserResponse>) {
   const { name } = call.request;
-  let dynamoDocumentClient: DynamoDBDocumentClient | undefined = undefined;
-  // Check if the user already exists
-  try {
-    logger.info('Initializing dynamoDB clients for user creation.');
-    dynamoDocumentClient = await getDynamoDocumentClient();
-    logger.info('DynamoDB clients initialized successfully for user creation.');
 
-    const getItemParams: GetCommandInput = {
-      TableName: databaseConfig.tableName ?? '',
-      Key: {
-        Username: name,
+  try {
+    // Check if user already exists
+    const item: Record<string, any> | undefined = await dynamoClient.getItem('Username', name);
+    const user: User = {
+      name: item?.Username,
+      currentLocation: {
+        x: parseFloat(item?.CurrentLocation?.x),
+        y: parseFloat(item?.CurrentLocation?.y),
       },
+      pathsTraveled: item?.PathsTraveled,
     };
 
-    const getCommand: GetCommand = new GetCommand(getItemParams);
-
-    const { Item } = await dynamoDocumentClient.send(getCommand);
-
     // Return if user exists
-    if (Item) {
+    if (user) {
       logger.info(`User ${name} already exists`);
 
       callback(null, {
@@ -48,33 +46,16 @@ export async function createUser(call: grpc.ServerUnaryCall<Username, UserRespon
     };
 
     // Create user in database
-    const newUserParams: PutCommandInput = {
-      TableName: databaseConfig.tableName ?? '',
-      Item: {
-        Username: name,
-        CurrentLocation: {
-          x: newUser.currentLocation?.x,
-          y: newUser.currentLocation?.y,
-        },
-        PathsTraveled: {
-          0: [
-            {
-              x: 0,
-              y: 0,
-            },
-          ],
-        },
+    const newUserDynamoItem = {
+      Username: name,
+      CurrentLocation: {
+        x: newUser.currentLocation?.x,
+        y: newUser.currentLocation?.y,
       },
+      PathsTraveled: {},
     };
 
-    const putCommand: PutCommand = new PutCommand(newUserParams);
-
-    await dynamoDocumentClient.send(putCommand);
-    logger.info(`User ${name} created successfully in DynamoDB.`);
-
-    // Destroy the DynamoDB client
-    await dynamoDocumentClient.destroy();
-    logger.info('DynamoDB client destroyed after user creation.');
+    await dynamoClient.putItem(newUserDynamoItem);
 
     // Successful user creation
     callback(null, {
@@ -82,18 +63,13 @@ export async function createUser(call: grpc.ServerUnaryCall<Username, UserRespon
       message: `Successfully  create user ${name}`,
       user: newUser,
     });
-  } catch (err) {
-    logger.error(`Could not create user in DynamoDB: ${err}`);
-
-    // Destroy the DynamoDB client in case of error
-    if (dynamoDocumentClient !== undefined) {
-      await dynamoDocumentClient.destroy();
-      logger.info('DynamoDB client destroyed after error in user creation.');
-    }
+  } catch (error) {
+    const err: Error = error as Error;
+    logger.error(`Could not create user in DynamoDB: ${err.message}`);
 
     callback(null, {
       status: TrackerStatus.USER_NOT_CREATED,
-      message: `Could not create user in DynamoDB: ${err}`,
+      message: `Could not create user in DynamoDB: ${err.message}`,
     });
   }
 }

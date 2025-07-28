@@ -169,7 +169,7 @@ export interface RealTimeUserResponse {
 export interface LocationResponse {
   status: TrackerStatus;
   message: string;
-  userName: Username | undefined;
+  userName: string;
   location?: Location | undefined;
 }
 
@@ -828,7 +828,7 @@ export const RealTimeUserResponse: MessageFns<RealTimeUserResponse> = {
 };
 
 function createBaseLocationResponse(): LocationResponse {
-  return { status: 0, message: "", userName: undefined, location: undefined };
+  return { status: 0, message: "", userName: "", location: undefined };
 }
 
 export const LocationResponse: MessageFns<LocationResponse> = {
@@ -839,8 +839,8 @@ export const LocationResponse: MessageFns<LocationResponse> = {
     if (message.message !== "") {
       writer.uint32(18).string(message.message);
     }
-    if (message.userName !== undefined) {
-      Username.encode(message.userName, writer.uint32(26).fork()).join();
+    if (message.userName !== "") {
+      writer.uint32(26).string(message.userName);
     }
     if (message.location !== undefined) {
       Location.encode(message.location, writer.uint32(34).fork()).join();
@@ -876,7 +876,7 @@ export const LocationResponse: MessageFns<LocationResponse> = {
             break;
           }
 
-          message.userName = Username.decode(reader, reader.uint32());
+          message.userName = reader.string();
           continue;
         }
         case 4: {
@@ -900,7 +900,7 @@ export const LocationResponse: MessageFns<LocationResponse> = {
     return {
       status: isSet(object.status) ? trackerStatusFromJSON(object.status) : 0,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
-      userName: isSet(object.userName) ? Username.fromJSON(object.userName) : undefined,
+      userName: isSet(object.userName) ? globalThis.String(object.userName) : "",
       location: isSet(object.location) ? Location.fromJSON(object.location) : undefined,
     };
   },
@@ -913,8 +913,8 @@ export const LocationResponse: MessageFns<LocationResponse> = {
     if (message.message !== "") {
       obj.message = message.message;
     }
-    if (message.userName !== undefined) {
-      obj.userName = Username.toJSON(message.userName);
+    if (message.userName !== "") {
+      obj.userName = message.userName;
     }
     if (message.location !== undefined) {
       obj.location = Location.toJSON(message.location);
@@ -929,9 +929,7 @@ export const LocationResponse: MessageFns<LocationResponse> = {
     const message = createBaseLocationResponse();
     message.status = object.status ?? 0;
     message.message = object.message ?? "";
-    message.userName = (object.userName !== undefined && object.userName !== null)
-      ? Username.fromPartial(object.userName)
-      : undefined;
+    message.userName = object.userName ?? "";
     message.location = (object.location !== undefined && object.location !== null)
       ? Location.fromPartial(object.location)
       : undefined;
