@@ -4,10 +4,13 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 
 // Internal Imports
-import { getUsers } from './protoFunctions/getUsers';
-import { createUser } from './protoFunctions/createUser';
 import { logger } from './lib/logger';
+import { getUsers } from './protoFunctions/getUsers';
 import { serverConfig } from './config/serverConfig';
+import { createUser } from './protoFunctions/createUser';
+import { getLocation } from './protoFunctions/getLocation';
+import { getLocations } from './protoFunctions/getLocations';
+import { getCurrentLocation } from './protoFunctions/getCurrentLocation';
 
 // Proto file location
 const PROTO_PATH = path.join(__dirname, '..', 'proto', 'tracker.proto');
@@ -37,6 +40,9 @@ const server: grpc.Server = new grpc.Server();
 server.addService(trackerService, {
   createUser: createUser,
   getUsers: getUsers,
+  getCurrentLocation: getCurrentLocation,
+  getLocations: getLocations,
+  getLocation: getLocation,
 });
 
 server.bindAsync(`${serverConfig.host}:${serverConfig.port}`, grpc.ServerCredentials.createInsecure(), (err) => {
