@@ -20,6 +20,7 @@ export enum TrackerStatus {
   NO_RECORDS = 404,
   MISSING_USER_DATA = 405,
   USER_STREAM_ERROR = 406,
+  USER_NOT_MOVED = 407,
   UNRECOGNIZED = -1,
 }
 
@@ -49,6 +50,9 @@ export function trackerStatusFromJSON(object: any): TrackerStatus {
     case 406:
     case "USER_STREAM_ERROR":
       return TrackerStatus.USER_STREAM_ERROR;
+    case 407:
+    case "USER_NOT_MOVED":
+      return TrackerStatus.USER_NOT_MOVED;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -74,6 +78,8 @@ export function trackerStatusToJSON(object: TrackerStatus): string {
       return "MISSING_USER_DATA";
     case TrackerStatus.USER_STREAM_ERROR:
       return "USER_STREAM_ERROR";
+    case TrackerStatus.USER_NOT_MOVED:
+      return "USER_NOT_MOVED";
     case TrackerStatus.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";

@@ -28,10 +28,7 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
           message: 'Existing user data retrieved.',
           eventType: DynamoDBEvent.EXISTING,
           userName: item.Username,
-          currentLocation: {
-            x: parseFloat(item.CurrentLocation?.x),
-            y: parseFloat(item.CurrentLocation?.y),
-          },
+          currentLocation: item.CurrentLocation,
         };
         call.write(response);
       }
@@ -74,10 +71,7 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
                 message: `Event received: ${eventName} with user data: ${JSON.stringify(userData)}`,
                 eventType: eventName,
                 userName: userData.Username,
-                currentLocation: {
-                  x: parseFloat(userData.CurrentLocation?.x),
-                  y: parseFloat(userData.CurrentLocation?.y),
-                },
+                currentLocation: userData.CurrentLocation,
               };
 
               call.write(response);

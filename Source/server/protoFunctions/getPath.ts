@@ -3,7 +3,7 @@ import * as grpc from '@grpc/grpc-js';
 // Internal Imports
 import { logger } from '../lib/logger';
 import { dynamoClient } from '../lib/dynamoClient';
-import { User, LocationResponse, Username, TrackerStatus, Location, Path, PathRequest } from '../protoDefinitions/tracker';
+import { LocationResponse, TrackerStatus, Location, Path, PathRequest } from '../protoDefinitions/tracker';
 
 export async function getLocations(call: grpc.ServerWritableStream<PathRequest, LocationResponse>) {
   try {
@@ -25,10 +25,7 @@ export async function getLocations(call: grpc.ServerWritableStream<PathRequest, 
           status: TrackerStatus.OK,
           message: `Location ${returnPath.pathTraveled.indexOf(loc)} of path ${call.request.pathKey} for user ${item.Username} retrieved.`,
           userName: item.Username,
-          location: {
-            x: loc.x,
-            y: loc.y,
-          },
+          location: loc as Location,
         };
         call.write(response);
       }

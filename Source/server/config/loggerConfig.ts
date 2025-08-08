@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import process from 'process';
 
 dotenv.config({ path: process.env.NODE_ENV !== undefined ? process.env.NODE_ENV : '.env' });
 

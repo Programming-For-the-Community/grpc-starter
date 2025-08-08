@@ -13,10 +13,7 @@ export async function getLocations(call: grpc.ServerDuplexStream<Username, Locat
       if (item) {
         const user: User = {
           name: item.Username,
-          currentLocation: {
-            x: parseFloat(item.CurrentLocation?.x),
-            y: parseFloat(item.CurrentLocation?.y),
-          },
+          currentLocation: item.CurrentLocation,
           pathsTraveled: item.PathsTraveled,
         };
 

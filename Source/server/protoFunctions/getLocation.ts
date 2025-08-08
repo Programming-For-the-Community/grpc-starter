@@ -25,10 +25,7 @@ export const getLocation = async (call: ServerWritableStream<Username, LocationR
         status: TrackerStatus.OK,
         message: `Current location of ${item.Username} retrieved.`,
         userName: item.Username,
-        location: {
-          x: parseFloat(item.CurrentLocation?.x),
-          y: parseFloat(item.CurrentLocation?.y),
-        },
+        location: item.CurrentLocation,
       };
       call.write(response);
 
@@ -79,10 +76,7 @@ export const getLocation = async (call: ServerWritableStream<Username, LocationR
                 status: TrackerStatus.OK,
                 message: `Updated location for ${userData.Username}: ${JSON.stringify(userData.currentLocation)}`,
                 userName: userData.Username,
-                location: {
-                  x: parseFloat(userData.CurrentLocation?.x),
-                  y: parseFloat(userData.CurrentLocation?.y),
-                },
+                location: item.CurrentLocation,
               };
 
               call.write(response);

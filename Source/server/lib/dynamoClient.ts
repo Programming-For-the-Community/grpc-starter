@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, GetCommandInput, PutCommand, PutCommandInput, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, GetCommandInput, PutCommand, PutCommandInput, ScanCommand, UpdateCommand, UpdateCommandInput } from '@aws-sdk/lib-dynamodb';
 import {
   DynamoDBStreamsClient,
   DescribeStreamCommand,
@@ -228,6 +228,51 @@ class DynamoClient {
       }
 
       throw new Error(`Failed to retrieve records from shard: ${err.message}`);
+    }
+  }
+
+  public async updateItem(keyName: string, keyValue: string, updateValues: Map<string, any>, tableName: string | undefined = undefined): Promise<void> {
+    let dynamoDocumentClient: DynamoDBDocumentClient | undefined = undefined;
+
+    try {
+      logger.info('Initializing dynamoDB clients for item update.');
+      dynamoDocumentClient = await this.getDynamoDocumentClient();
+      logger.info('DynamoDB clients initialized successfully for item update.');
+
+      let updateExpression = 'SET';
+      const expressionAttributeNames: Record<string, string> = {};
+      const expressionAttributeValues: Record<string, any> = {};
+
+      let i: number = 0;
+      for (const key of updateValues.keys()) {
+        updateExpression += ` #field${i} = :value${i},`;
+        expressionAttributeNames[`#field${i}`] = key;
+        expressionAttributeValues[`:value${i}`] = updateValues.get(key);
+
+        i++; // Increment index for next field
+      }
+
+      const updateCommand: UpdateCommandInput = {
+        TableName: tableName || databaseConfig.tableName,
+        Key: { [keyName]: keyValue },
+        UpdateExpression: updateExpression,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+      };
+
+      await dynamoDocumentClient.send(new UpdateCommand(updateCommand));
+      logger.info(`Item ${keyName} on table ${tableName || databaseConfig.tableName}: Successfully updated values ${JSON.stringify(updateValues)}.`);
+
+      dynamoDocumentClient.destroy();
+    } catch (error) {
+      const err: Error = error as Error;
+      logger.error(`Error updating item with ${keyName}: ${updateValues.get(keyName)} in DynamoDB: ${err}`);
+
+      if (dynamoDocumentClient) {
+        dynamoDocumentClient.destroy();
+      }
+
+      throw new Error(`Failed to update item: ${err.message}`);
     }
   }
 }

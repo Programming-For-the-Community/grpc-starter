@@ -16,17 +16,9 @@ export async function createUser(call: grpc.ServerUnaryCall<Username, UserRespon
   try {
     // Check if user already exists
     const item: Record<string, any> | undefined = await dynamoClient.getItem('Username', name);
-    const user: User = {
-      name: item?.Username,
-      currentLocation: {
-        x: parseFloat(item?.CurrentLocation?.x),
-        y: parseFloat(item?.CurrentLocation?.y),
-      },
-      pathsTraveled: item?.PathsTraveled,
-    };
 
     // Return if user exists
-    if (user) {
+    if (item) {
       logger.info(`User ${name} already exists`);
 
       callback(null, {
@@ -48,10 +40,7 @@ export async function createUser(call: grpc.ServerUnaryCall<Username, UserRespon
     // Create user in database
     const newUserDynamoItem = {
       Username: name,
-      CurrentLocation: {
-        x: newUser.currentLocation?.x,
-        y: newUser.currentLocation?.y,
-      },
+      CurrentLocation: newUser.currentLocation,
       PathsTraveled: {},
     };
 
