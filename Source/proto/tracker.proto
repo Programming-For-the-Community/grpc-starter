@@ -73,7 +73,7 @@ message RealTimeUserResponse {
 message LocationResponse {
     TrackerStatus status = 1;
     string message = 2;
-    Username userName = 3;
+    string userName = 3;
     optional Location location = 4;
 }
 
@@ -91,6 +91,7 @@ enum TrackerStatus {
     NO_RECORDS = 404;
     MISSING_USER_DATA = 405;
     USER_STREAM_ERROR = 406;
+    USER_NOT_MOVED = 407;
 }
 
 enum DynamoDBEvent {
