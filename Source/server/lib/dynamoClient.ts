@@ -252,6 +252,9 @@ class DynamoClient {
         i++; // Increment index for next field
       }
 
+      // Remove trailing comma
+      updateExpression = updateExpression.replace(/,+\s*$/, '');
+
       const updateCommand: UpdateCommandInput = {
         TableName: tableName || databaseConfig.tableName,
         Key: { [keyName]: keyValue },

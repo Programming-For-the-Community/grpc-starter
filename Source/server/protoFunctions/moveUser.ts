@@ -12,7 +12,7 @@ import { UserResponse, Username, TrackerStatus } from '../protoDefinitions/track
  * @param call gRPC server unary call containing the username.
  * @param callback grpc callback to send the response.
  */
-export async function createUser(call: grpc.ServerUnaryCall<Username, UserResponse>, callback: grpc.sendUnaryData<UserResponse>) {
+export async function moveUser(call: grpc.ServerUnaryCall<Username, UserResponse>, callback: grpc.sendUnaryData<UserResponse>) {
   try {
     // Randomly generate new coordinates within the UI dimensions
     const newLocation: Location = getRandomCoords();

@@ -38,4 +38,16 @@ class GrpcClient {
     }
 
   }
+
+  Future<UserResponse> moveUser(String username) async {
+    final request = Username(name: username);
+
+    try {
+      final response = await trackerClient.moveUser(request);
+
+      return response;
+    } catch (e) {
+      throw Exception('Failed to move user: $e');
+    }
+  }
 }

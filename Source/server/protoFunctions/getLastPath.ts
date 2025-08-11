@@ -5,7 +5,7 @@ import { logger } from '../lib/logger';
 import { dynamoClient } from '../lib/dynamoClient';
 import { LocationResponse, TrackerStatus, Location, Path, Username } from '../protoDefinitions/tracker';
 
-export async function getLocations(call: grpc.ServerWritableStream<Username, LocationResponse>) {
+export async function getLastPath(call: grpc.ServerWritableStream<Username, LocationResponse>) {
   try {
     logger.info('Starting real-time streaming for GetLocation.');
 

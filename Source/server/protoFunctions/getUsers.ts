@@ -90,6 +90,9 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
             message: 'No records found in the stream.',
           });
         }
+
+        // Delay the next polling iteration using REFRESH_FREQUENCY_MS
+        await new Promise((resolve) => setTimeout(resolve, databaseConfig.refreshFrequencyMs));
       }
     }
   } catch (error) {

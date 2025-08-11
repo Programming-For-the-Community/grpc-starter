@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../widgets/new_user_input.dart';
 import '../singletons/grpc_client.dart';
@@ -17,7 +18,8 @@ class GrpcHomePage extends StatefulWidget {
 
 class _GrpcHomePageState extends State<GrpcHomePage> {
   Offset _gridOffset = Offset.zero;
-  final List<GrpcUser> _users = [];
+  final Logger logger = Logger();
+  final Map<String, GrpcUser> _users = {};
   GrpcUser? _selectedUser; // Track the selected user
   final List<Color> _userColors = [
     Colors.red,
@@ -31,6 +33,57 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
     Colors.teal,
     Colors.lime,
   ];
+
+  // In _GrpcHomePageState
+  double _zoom = 1.0;
+
+  void _onScaleUpdate(ScaleUpdateDetails details) {
+    setState(() {
+      _zoom = (_zoom * details.scale).clamp(0.2, 5.0);
+    });
+  }
+
+  void _clampOffsetAndZoom() {
+    final size = MediaQuery.of(context).size;
+    const gridMin = Offset(-10000, -10000);
+    const gridMax = Offset(10000, 10000);
+
+    final gridWidth = (gridMax.dx - gridMin.dx) * _zoom;
+    final gridHeight = (gridMax.dy - gridMin.dy) * _zoom;
+
+    double offsetX, offsetY;
+
+    if (size.width >= gridWidth) {
+      // Center grid horizontally
+      offsetX = size.width / 2 - ((gridMin.dx + gridMax.dx) / 2) * _zoom;
+    } else {
+      final minOffsetX = size.width - gridMax.dx * _zoom;
+      final maxOffsetX = -gridMin.dx * _zoom;
+      offsetX = _gridOffset.dx.clamp(minOffsetX, maxOffsetX);
+    }
+
+    if (size.height >= gridHeight) {
+      // Center grid vertically
+      offsetY = size.height / 2 + ((gridMin.dy + gridMax.dy) / 2) * _zoom;
+    } else {
+      final minOffsetY = size.height - gridMax.dy * _zoom;
+      final maxOffsetY = -gridMin.dy * _zoom;
+      offsetY = _gridOffset.dy.clamp(minOffsetY, maxOffsetY);
+    }
+
+    _gridOffset = Offset(offsetX, offsetY);
+  }
+
+  void _onPointerSignal(PointerSignalEvent event) {
+    if (event is PointerScrollEvent) {
+      setState(() {
+        final oldZoom = _zoom;
+        _zoom = (_zoom * (event.scrollDelta.dy > 0 ? 0.99 : 1.01)).clamp(0.2, 5.0);
+        // Optionally, adjust offset to zoom around the mouse pointer
+        _clampOffsetAndZoom();
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -48,46 +101,28 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
         try {
           await for (RealTimeUserResponse userResponse in GrpcClient().trackerClient.getUsers(Empty())) {
             if (userResponse.status == TrackerStatus.OK) {
+              GrpcUser returnedUser = GrpcUser(
+                username: userResponse.userName,
+                currentX: userResponse.currentLocation.x,
+                currentY: userResponse.currentLocation.y,
+              );
+
               setState(() {
                 // Insert new user
-                if (userResponse.eventType == DynamoDBEvent.EXISTING) {
-                  _users.add(GrpcUser(
-                    username: userResponse.userName,
-                    currentX: userResponse.currentLocation.x,
-                    currentY: userResponse.currentLocation.y,
-                  ));
+                if (userResponse.eventType == DynamoDBEvent.INSERT) {
+                  _users[userResponse.userName] = returnedUser;
 
                 // if existing, check if user already exists and update if it does, otherwise insert
                 } else if (userResponse.eventType == DynamoDBEvent.EXISTING) {
-                  final index = _users.indexWhere((user) => user.username == userResponse.userName);
-                  if (index != -1) {
-                    _users[index] = GrpcUser(
-                      username: userResponse.userName,
-                      currentX: userResponse.currentLocation.x,
-                      currentY: userResponse.currentLocation.y,
-                    );
-                  } else {
-                    _users.add(GrpcUser(
-                      username: userResponse.userName,
-                      currentX: userResponse.currentLocation.x,
-                      currentY: userResponse.currentLocation.y,
-                    ));
-                  }
+                  _users.putIfAbsent(userResponse.userName, () => returnedUser);
 
                 // Update existing user
                 } else if(userResponse.eventType == DynamoDBEvent.MODIFY) {
-                  final index = _users.indexWhere((user) => user.username == userResponse.userName);
-                  if (index != -1) {
-                    _users[index] = GrpcUser(
-                      username: userResponse.userName,
-                      currentX: userResponse.currentLocation.x,
-                      currentY: userResponse.currentLocation.y,
-                    );
-                  }
+                  _users[userResponse.userName] = returnedUser;
 
                 // Delete user
                 } else if(userResponse.eventType == DynamoDBEvent.REMOVE) {
-                  _users.removeWhere((user) => user.username == userResponse.userName);
+                  _users.remove(userResponse.userName);
                 }
               });
             }
@@ -104,17 +139,8 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
 
   void _onDragUpdate(DragUpdateDetails details) {
     setState(() {
-      _gridOffset = Offset(
-        (_gridOffset.dx + details.delta.dx).clamp(-10000.0, 10000.0),
-        (_gridOffset.dy + details.delta.dy).clamp(-10000.0, 10000.0),
-      );
-    });
-  }
-
-  void _centerUser(GrpcUser user) {
-    setState(() {
-      _gridOffset = Offset(-user.currentX, user.currentY); // Center the grid on the user's location
-      _selectedUser = user; // Set the selected user
+      _gridOffset += details.delta;
+      _clampOffsetAndZoom();
     });
   }
 
@@ -122,78 +148,108 @@ class _GrpcHomePageState extends State<GrpcHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
-      body: GestureDetector(
-        onPanUpdate: _onDragUpdate,
-        child: Stack(
-          children: [
-            CustomPaint(
-              size: Size.infinite,
-              painter: CoordinateGridPainter(_gridOffset, _users, _userColors),
-            ),
-            Positioned(
-              left: 16,
-              top: 16,
-              bottom: 16,
-              child: Container(
-                width: 250,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 4,
-                      offset: Offset(2, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Available Users',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: _users.length,
-                        itemBuilder: (context, index) {
-                          final user = _users[index];
-                          final color = _userColors[index % _userColors.length];
-                          return ListTile(
-                            title: Text(
-                              user.username ?? 'Unknown',
-                              style: TextStyle(color: color),
-                            ),
-                            subtitle: Text(
-                              'Location: (${user.currentX}, ${user.currentY})',
-                            ),
-                            onTap: () => _centerUser(user), // Center the user on tap
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+      body: Listener(
+        onPointerSignal: _onPointerSignal,
+        child: GestureDetector(
+          onPanUpdate: _onDragUpdate,
+          child: Stack(
+            children: [
+              CustomPaint(
+                size: Size.infinite,
+                painter: CoordinateGridPainter(_gridOffset, _users, _userColors, _selectedUser, _zoom),
               ),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Align(
-                    alignment: Alignment.topRight,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: NewUserInput(),
-                    ),
+              Positioned(
+                left: 16,
+                top: 16,
+                bottom: 16,
+                child: Container(
+                  width: 250,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 4,
+                        offset: Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Available Users',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: _users.length,
+                          itemBuilder: (context, index) {
+                            final user = _users.values.elementAt(index);
+                            final color = _userColors[index % _userColors.length];
+                            return ListTile(
+                              title: Text(
+                                user.username ?? 'Unknown',
+                                style: TextStyle(color: color),
+                              ),
+                              subtitle: Text(
+                                'Location: (${user.currentX}, ${user.currentY})',
+                              ),
+                              trailing: IconButton(
+                                icon: Icon(Icons.directions),
+                                tooltip: 'Move User',
+                                onPressed: () async {
+                                  try {
+                                    final response = await GrpcClient().moveUser(user.username);
+                                    if (response.status == TrackerStatus.OK) {
+                                      logger.info(response.message);
+                                    } else {
+                                      logger.error('Failed to move user -> $response}');
+                                    }
+                                  } catch (e) {
+                                    logger.error('Error moving user: $e');
+                                  }
+                                },
+                              ),
+                              onTap: () {
+                                final size = MediaQuery.of(context).size;
+                                setState(() {
+                                  // Center the user's location in the window
+                                  _zoom = 1.0; // Reset zoom on user selection
+                                  _gridOffset = Offset(
+                                    size.width / 2 - user.currentX * _zoom,
+                                    size.height / 2 + user.currentY * _zoom,
+                                  );
+                                  _selectedUser = user;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: NewUserInput(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
