@@ -16,7 +16,7 @@ class CoordinateGridPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final scale = 1 / pow(zoom, 1);
+    final scale = 1; /// pow(zoom, 1);
     canvas.save();
     canvas.translate(offset.dx, offset.dy);
     canvas.scale(zoom);
