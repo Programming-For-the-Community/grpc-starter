@@ -9,6 +9,7 @@ class CoordinateGridPainter extends CustomPainter {
   final Map<String, GrpcUser> users;
   final GrpcUser? selectedUser;
   final gridController = GridInteractionController();
+  AppConfig appConfig = AppConfig();
 
   CoordinateGridPainter(this.users, this.selectedUser);
 
@@ -19,69 +20,69 @@ class CoordinateGridPainter extends CustomPainter {
     canvas.scale(gridController.getZoom());
 
     // Paint for regular grid lines
-    final gridPaint = Paint()
+    final minorGridlinePaint = Paint()
       ..color = Colors.grey
-      ..strokeWidth = 0.5;
+      ..strokeWidth = appConfig.minorGridlineWidth;
 
     // Paint for darker grid lines every 200 units
-    final darkerGridPaint = Paint()
+    final majorGridlinePaint = Paint()
+
       ..color = Colors.grey[700]!
-      ..strokeWidth = 1.0;
+      ..strokeWidth = appConfig.majorGridlineWidth;
 
     // Paint for origin crosshairs
     final originPaint = Paint()
       ..color = Colors.black
-      ..strokeWidth = 2.0;
+      ..strokeWidth = appConfig.originWidth;
 
     // Draw vertical grid lines
-    for (double x = -10000; x <= 10000; x += 10) {
-      final paint = (x % 200 == 0) ? darkerGridPaint : gridPaint;
+    for (double x = appConfig.minGridSize; x <= appConfig.maxGridSize; x += appConfig.minorGridlineSpacing) {
+      final paint = (x % appConfig.majorGridlineSpacing == 0) ? majorGridlinePaint : minorGridlinePaint;
       canvas.drawLine(
-        Offset(x, -10000),
-        Offset(x, 10000),
+        Offset(x, appConfig.minGridSize),
+        Offset(x, appConfig.maxGridSize),
         paint,
       );
     }
 
     // Draw horizontal grid lines (invert y-axis)
-    for (double y = -10000; y <= 10000; y += 10) {
-      final paint = (y % 200 == 0) ? darkerGridPaint : gridPaint;
+    for (double y = appConfig.minGridSize; y <= appConfig.maxGridSize; y += appConfig.minorGridlineSpacing) {
+      final paint = (y % appConfig.majorGridlineSpacing == 0) ? majorGridlinePaint : minorGridlinePaint;
       canvas.drawLine(
-        Offset(-10000, -y),
-        Offset(10000, -y),
+        Offset(appConfig.minGridSize, -y),
+        Offset(appConfig.maxGridSize, -y),
         paint,
       );
     }
 
     // Draw origin crosshairs
     canvas.drawLine(
-      Offset(0, -10000),
-      Offset(0, 10000),
+      Offset(0, appConfig.minGridSize),
+      Offset(0, appConfig.maxGridSize),
       originPaint,
     );
     canvas.drawLine(
-      Offset(-10000, 0),
-      Offset(10000, 0),
+      Offset(appConfig.minGridSize, 0),
+      Offset(appConfig.maxGridSize, 0),
       originPaint,
     );
 
     // Draw user locations
-    for (int i = 0; i < users.length; i++) {
-      final user = users.values.elementAt(i);
-      final userOffset = Offset(
+    users.values.forEach( (user) {
+      Offset userOffset = Offset(
         user.currentX,
         -user.currentY, // Invert y-axis
       );
-      final userPaint = Paint()
+      Paint userPaint = Paint()
         ..color = user.color
         ..style = PaintingStyle.fill;
 
-      canvas.drawCircle(userOffset, 5, userPaint);
+      canvas.drawCircle(userOffset, appConfig.userDotRadius, userPaint);
 
       if (selectedUser != null && user.username == selectedUser!.username) {
         drawUserBubble(canvas, userOffset, user);
       }
-    }
+    });
 
     canvas.restore();
   }

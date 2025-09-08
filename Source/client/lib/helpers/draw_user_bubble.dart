@@ -8,7 +8,10 @@ void drawUserBubble(Canvas canvas, Offset userOffset, GrpcUser user) {
 
   // Convert the 0-1.0 opacity to 0-255 range
   int bubbleOpacity = (appConfig.bubbleOpacity * 255.0).round().clamp(0, 255).toInt();
+  int offsetFromUser = 18;
+  double tailTipUserOffset = 5;
 
+  // Bubble rectangle (above the user position)
   Rect bubbleRect = Rect.fromLTWH(
     userOffset.dx - appConfig.bubbleWidth / 2,
     userOffset.dy - appConfig.bubbleHeight - appConfig.tailHeight - 8,
@@ -24,7 +27,7 @@ void drawUserBubble(Canvas canvas, Offset userOffset, GrpcUser user) {
   );
 
   // Tail points
-  Offset tailTip = Offset(userOffset.dx, userOffset.dy - 5);
+  Offset tailTip = Offset(userOffset.dx, userOffset.dy - tailTipUserOffset);
   Offset tailLeft = Offset(userOffset.dx - appConfig.tailWidth / 2, bubbleRect.bottom);
   Offset tailRight = Offset(userOffset.dx + appConfig.tailWidth / 2, bubbleRect.bottom);
 
@@ -36,52 +39,54 @@ void drawUserBubble(Canvas canvas, Offset userOffset, GrpcUser user) {
     ..close();
 
   Paint tailPaint = Paint()..shader = bubbleGradient.createShader(bubbleRect);
-  canvas.drawShadow(tailPath, Colors.black26, 6, false);
+
+  canvas.drawShadow(tailPath, Colors.black26, appConfig.tailShadowElevation, false);
   canvas.drawPath(tailPath, tailPaint);
 
-  // Draw bubble (filled)
-  RRect rrect = RRect.fromRectAndRadius(bubbleRect, Radius.circular(18));
+  // Draw bubble as rounded rectangle (filled)
+  Radius bubbleRadius = Radius.circular(appConfig.bubbleCornerRadius);
+  RRect roundedRect = RRect.fromRectAndRadius(bubbleRect, bubbleRadius);
 
   Paint bubblePaint = Paint()..shader = bubbleGradient.createShader(bubbleRect);
 
-  canvas.drawShadow(Path()..addRRect(rrect), Colors.black26, 6, false);
-  canvas.drawRRect(rrect, bubblePaint);
+  canvas.drawShadow(Path()..addRRect(roundedRect), Colors.black26, 6, false);
+  canvas.drawRRect(roundedRect, bubblePaint);
 
   // Border paint
   Paint borderPaint = Paint()
     ..color = user.color
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.5;
+    ..strokeWidth = appConfig.bubbleBorderWidth;
 
   // 1. Draw the border for the rounded rectangle, skipping the bottom edge between tailLeft and tailRight
   Path borderPath = Path();
-  borderPath.moveTo(bubbleRect.left + 0, bubbleRect.top + 18);
+  borderPath.moveTo(bubbleRect.left + 0, bubbleRect.top + offsetFromUser);
   borderPath.arcToPoint(
-    Offset(bubbleRect.left + 18, bubbleRect.top),
-    radius: Radius.circular(18),
+    Offset(bubbleRect.left + offsetFromUser, bubbleRect.top),
+    radius: bubbleRadius,
     clockwise: true,
   );
-  borderPath.lineTo(bubbleRect.right - 18, bubbleRect.top);
+  borderPath.lineTo(bubbleRect.right - offsetFromUser, bubbleRect.top);
   borderPath.arcToPoint(
-    Offset(bubbleRect.right, bubbleRect.top + 18),
-    radius: Radius.circular(18),
+    Offset(bubbleRect.right, bubbleRect.top + offsetFromUser),
+    radius: bubbleRadius,
     clockwise: true,
   );
-  borderPath.lineTo(bubbleRect.right, bubbleRect.bottom - 18);
+  borderPath.lineTo(bubbleRect.right, bubbleRect.bottom - offsetFromUser);
   borderPath.arcToPoint(
-    Offset(bubbleRect.right - 18, bubbleRect.bottom),
-    radius: Radius.circular(18),
+    Offset(bubbleRect.right - offsetFromUser, bubbleRect.bottom),
+    radius: bubbleRadius,
     clockwise: true,
   );
   borderPath.lineTo(tailRight.dx, tailRight.dy);
   borderPath.moveTo(tailLeft.dx, tailLeft.dy);
-  borderPath.lineTo(bubbleRect.left + 18, bubbleRect.bottom);
+  borderPath.lineTo(bubbleRect.left + offsetFromUser, bubbleRect.bottom);
   borderPath.arcToPoint(
-    Offset(bubbleRect.left, bubbleRect.bottom - 18),
-    radius: Radius.circular(18),
+    Offset(bubbleRect.left, bubbleRect.bottom - offsetFromUser),
+    radius: bubbleRadius,
     clockwise: true,
   );
-  borderPath.lineTo(bubbleRect.left, bubbleRect.top + 18);
+  borderPath.lineTo(bubbleRect.left, bubbleRect.top + offsetFromUser);
 
   canvas.drawPath(borderPath, borderPaint);
 
@@ -96,10 +101,10 @@ void drawUserBubble(Canvas canvas, Offset userOffset, GrpcUser user) {
   TextSpan textSpan = TextSpan(
     text: '(${user.currentX.toStringAsFixed(2)}, ${user.currentY.toStringAsFixed(2)})',
     style: TextStyle(
-      color: Colors.blueGrey[900],
-      fontSize: 15,
+      color: Colors.black,
+      fontSize: appConfig.bubbleFontSize,
       fontWeight: FontWeight.w600,
-      fontFamily: 'RobotoMono',
+      fontFamily: appConfig.fontFamily,
     ),
   );
   TextPainter tp = TextPainter(
