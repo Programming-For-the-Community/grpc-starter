@@ -1,4 +1,4 @@
-name: flutter_grpc_example
+name: flutter_grpc_client
 description: Flutter project showing how gRPC can be used in concert with a user-facing application
 publish_to: 'none'
 
@@ -14,8 +14,8 @@ dependencies:
   grpc: ^4.0.1
   protobuf: ^3.1.0
   intl: ^0.18.0
-  package_info_plus: ^4.0.0
   window_manager: ^0.5.0
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -25,3 +25,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+      - .env.dev

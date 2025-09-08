@@ -1,7 +1,8 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:intl/intl.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+
+import 'app_config.dart';
 
 class Logger {
   static final Logger _instance = Logger._internal();
@@ -11,9 +12,9 @@ class Logger {
 
   factory Logger() => _instance;
 
-  Future<void> init() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    _appName = '${packageInfo.appName}@${packageInfo.version}';
+  static Future<void> init() async {
+    final config = AppConfig();
+    _instance._appName = '${config.appName}@${config.appVersion}';
   }
 
   String _getTimestamp() {

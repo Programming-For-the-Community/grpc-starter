@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
+
 class GrpcUser {
   String username;
   double currentX;
   double currentY;
   Map<int, List<List<double>>> pathsTraveled;
+  late Color color;
 
   GrpcUser({
     required this.username,

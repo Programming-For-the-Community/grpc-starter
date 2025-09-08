@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'pages/grpc_home.dart';
 import 'singletons/grpc_client.dart';
-import 'singletons/logger.dart';// Import the gRPC client singleton
+import 'singletons/logger.dart';
+import 'singletons/app_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensures async before runApp
 
+  await AppConfig.load(); // Get AppConfig instance
+
+  await Logger.init(); // Initialize the logger with app info
+
   await GrpcClient.init(); // Initialize gRPC client
 
-  final logger = Logger(); // Initialize the logger
-  await logger.init(); // Initialize the logger with app info
-
-  logger.info('Application started');
+  Logger().info('Application started');
 
   runApp(const GrpcApp());
 }

@@ -1,4 +1,6 @@
 import 'package:grpc/grpc.dart';
+
+import 'app_config.dart';
 import '../proto/tracker.pbgrpc.dart';
 
 class GrpcClient {
@@ -12,10 +14,12 @@ class GrpcClient {
   factory GrpcClient() => _instance;
 
   static Future<void> init() async {
+    final config = AppConfig();
+
     _instance._channel = ClientChannel(
-      'localhost',
-      port: 50051,
-      options: const ChannelOptions(
+      config.grpcHost,
+      port: config.grpcPort,
+      options: ChannelOptions(
         credentials: ChannelCredentials.insecure(),
       ),
     );
