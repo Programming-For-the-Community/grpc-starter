@@ -4,15 +4,18 @@ import '../classes/grpc_user.dart';
 import '../singletons/grpc_client.dart';
 import '../singletons/logger.dart';
 import '../proto/tracker.pbgrpc.dart';
+import '../singletons/app_config.dart';
 
 class AvailableUser extends StatelessWidget {
   final GrpcUser user;
   final VoidCallback onTap;
+  final VoidCallback onTakeTrip;
 
   const AvailableUser({
     super.key,
     required this.user,
     required this.onTap,
+    required this.onTakeTrip,
   });
 
   @override
@@ -34,20 +37,48 @@ class AvailableUser extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Implement Take Trip action
-                  },
-                  child: Text('Take Trip'),
+                child: SizedBox(
+                  width: AppConfig().usersListButtonWidth,
+                  height: AppConfig().usersListButtonHeight,
+                  child: ElevatedButton(
+                    onPressed: onTakeTrip,
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.zero, // Remove default padding
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Take Trip',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: AppConfig().usersListButtonFontSize,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Implement Show Last Trip action
-                  },
-                  child: const Text('Show Last Trip'),
+                child: SizedBox(
+                  width: AppConfig().usersListButtonWidth,
+                  height: AppConfig().usersListButtonHeight,
+                  child: ElevatedButton(
+                    onPressed: () =>{
+
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.zero, // Remove default padding
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Show Last Trip',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: AppConfig().usersListButtonFontSize,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],

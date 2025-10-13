@@ -6,6 +6,7 @@ class GrpcUser {
   double currentY;
   Map<int, List<List<double>>> pathsTraveled;
   late Color color;
+  bool showPath = false;
 
   GrpcUser({
     required this.username,

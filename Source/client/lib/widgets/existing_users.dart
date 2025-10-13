@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../singletons/logger.dart';
 
 import 'available_user.dart';
 import '../classes/grpc_user.dart';
@@ -7,17 +8,22 @@ import '../singletons/app_config.dart';
 class ExistingUsers extends StatelessWidget {
   final Map<String, GrpcUser> users;
   final Function(GrpcUser) onUserTap;
+  final Function(GrpcUser) onTakeTrip;
+  final _logger = Logger();
 
-  const ExistingUsers({
+  ExistingUsers({
     super.key,
     required this.users,
     required this.onUserTap,
+    required this.onTakeTrip,
   });
 
   @override
   Widget build(BuildContext context) {
+    _logger.debug('ExistingUsers rebuilding with ${users.length} users');
+
     return Container(
-      width: 250,
+      width: AppConfig().usersListDisplayWidth,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -43,10 +49,11 @@ class ExistingUsers extends StatelessWidget {
               itemCount: users.length,
               itemBuilder: (context, index) {
                 final user = users.values.elementAt(index);
-                user.color = AppConfig.userColors[index % AppConfig.userColors.length];
                 return AvailableUser(
+                  key: ValueKey(user.username),
                   user: user,
                   onTap: () => onUserTap(user),
+                  onTakeTrip: () => onTakeTrip(user),
                 );
               },
             ),

@@ -22,7 +22,17 @@ class GridInteractionController extends ChangeNotifier {
 
   void handlePointerSignal(PointerSignalEvent event, Size screenSize) {
     if (event is PointerScrollEvent) {
-      _zoom = (_zoom * (event.scrollDelta.dy > 0 ? 0.99 : 1.01)).clamp(0.2, 5.0);
+      // Convert vertical scroll to zoom
+      double zoomDelta = event.scrollDelta.dy < 0 ? 1.1 : 0.9;
+
+      // Calculate zoom center point
+      Offset zoomCenter = event.position;
+      Offset oldOffset = zoomCenter - _gridOffset;
+      Offset newOffset = oldOffset * zoomDelta;
+
+      _zoom = (_zoom * zoomDelta).clamp(0.2, 5.0);
+      _gridOffset += oldOffset - newOffset;
+
       clampOffsetAndZoom(screenSize);
       notifyListeners();
     }

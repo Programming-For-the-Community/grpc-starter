@@ -30,6 +30,11 @@ class AppConfig {
 
   late final double userDotRadius;
 
+  late final double usersListDisplayWidth;
+  late final double usersListButtonWidth;
+  late final double usersListButtonHeight;
+  late final double usersListButtonFontSize;
+
   late final String fontFamily;
 
   late final String grpcHost;
@@ -85,6 +90,11 @@ class AppConfig {
     _instance.tailShadowElevation = double.tryParse(dotenv.env['TAIL_SHADOW_ELEVATION'] ?? '6') ?? 6.0;
 
     _instance.userDotRadius = double.tryParse(dotenv.env['USER_DOT_RADIUS'] ?? '5') ?? 5.0;
+
+    _instance.usersListDisplayWidth = double.tryParse(dotenv.env['USERS_LIST_DISPLAY_WIDTH'] ?? '300.0') ?? 300.0;
+    _instance.usersListButtonWidth = double.tryParse(dotenv.env['USERS_LIST_BUTTON_WIDTH'] ?? '75.0') ?? 75.0;
+    _instance.usersListButtonHeight = double.tryParse(dotenv.env['USERS_LIST_BUTTON_HEIGHT'] ?? '25.0') ?? 25.0;
+    _instance.usersListButtonFontSize = double.tryParse(dotenv.env['USERS_LIST_BUTTON_FONT_SIZE'] ?? '10.0') ?? 10.0;
 
     _instance.fontFamily = dotenv.env['FONT_FAMILY'] ?? 'RobotoMono';
 
