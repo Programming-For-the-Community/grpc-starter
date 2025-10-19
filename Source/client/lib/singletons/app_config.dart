@@ -28,6 +28,9 @@ class AppConfig {
   late final double tailHeight;
   late final double tailShadowElevation;
 
+  late final double pathOpacity;
+  late final double startPointOpacity;
+
   late final double userDotRadius;
 
   late final double usersListDisplayWidth;
@@ -90,6 +93,9 @@ class AppConfig {
     _instance.tailShadowElevation = double.tryParse(dotenv.env['TAIL_SHADOW_ELEVATION'] ?? '6') ?? 6.0;
 
     _instance.userDotRadius = double.tryParse(dotenv.env['USER_DOT_RADIUS'] ?? '5') ?? 5.0;
+
+    _instance.pathOpacity = double.tryParse(dotenv.env['PATH_OPACITY'] ?? '0.6') ?? 0.6;
+    _instance.startPointOpacity = double.tryParse(dotenv.env['START_POINT_OPACITY'] ?? '0.4') ?? 0.4;
 
     _instance.usersListDisplayWidth = double.tryParse(dotenv.env['USERS_LIST_DISPLAY_WIDTH'] ?? '300.0') ?? 300.0;
     _instance.usersListButtonWidth = double.tryParse(dotenv.env['USERS_LIST_BUTTON_WIDTH'] ?? '75.0') ?? 75.0;

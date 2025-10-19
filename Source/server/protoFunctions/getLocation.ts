@@ -1,6 +1,6 @@
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { ServerWritableStream } from '@grpc/grpc-js';
-import { ShardIteratorType } from '@aws-sdk/client-dynamodb-streams';
+import { ShardIteratorType, GetRecordsCommandOutput } from '@aws-sdk/client-dynamodb-streams';
 
 import { logger } from '../lib/logger';
 import { dynamoClient } from '../lib/dynamoClient';
@@ -54,11 +54,12 @@ export const getLocation = async (call: ServerWritableStream<Username, LocationR
         const iterator = shardIterators[shardId];
         if (!iterator) continue;
 
-        const streamRecords: Record<string, any>[] = await dynamoClient.getStreamRecords(shardId, iterator);
+        const streamRecords: GetRecordsCommandOutput | undefined = await dynamoClient.getStreamRecords(shardId, iterator);
+        const records = streamRecords?.Records || [];
 
-        if (streamRecords && streamRecords.length > 0) {
+        if (records && records.length > 0) {
           // active = true; // Keep polling if there are records
-          for (const record of streamRecords) {
+          for (const record of records) {
             const eventName: DynamoDBEvent = dynamoDBEventFromJSON(record.eventName);
             let rawData: Record<string, any> | undefined;
 

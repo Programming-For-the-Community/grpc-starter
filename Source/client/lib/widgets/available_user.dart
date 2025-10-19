@@ -10,12 +10,16 @@ class AvailableUser extends StatelessWidget {
   final GrpcUser user;
   final VoidCallback onTap;
   final VoidCallback onTakeTrip;
+  final VoidCallback onShowLastTrip;
+  final VoidCallback onMoveUser;
 
   const AvailableUser({
     super.key,
     required this.user,
     required this.onTap,
     required this.onTakeTrip,
+    required this.onShowLastTrip,
+    required this.onMoveUser
   });
 
   @override
@@ -26,7 +30,7 @@ class AvailableUser extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            user.username ?? 'Unknown',
+            user.username!!,
             style: TextStyle(color: user.color),
           ),
           Text(
@@ -63,9 +67,7 @@ class AvailableUser extends StatelessWidget {
                   width: AppConfig().usersListButtonWidth,
                   height: AppConfig().usersListButtonHeight,
                   child: ElevatedButton(
-                    onPressed: () =>{
-
-                    },
+                    onPressed: onShowLastTrip,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero, // Remove default padding
                     ),
@@ -88,18 +90,7 @@ class AvailableUser extends StatelessWidget {
       trailing: IconButton(
         icon: const Icon(Icons.directions),
         tooltip: 'Move User',
-        onPressed: () async {
-          try {
-            final response = await GrpcClient().moveUser(user.username);
-            if (response.status == TrackerStatus.OK) {
-              logger.info(response.message);
-            } else {
-              logger.error('Failed to move user -> $response}');
-            }
-          } catch (e) {
-            logger.error('Error moving user: $e');
-          }
-        },
+        onPressed: onMoveUser,
       ),
       onTap: onTap,
     );

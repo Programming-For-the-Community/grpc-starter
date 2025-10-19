@@ -198,7 +198,7 @@ class DynamoClient {
     }
   }
 
-  public async getStreamRecords(shardId: string, shardIterator: string): Promise<Record<string, any>[]> {
+  public async getStreamRecords(shardId: string, shardIterator: string): Promise<GetRecordsCommandOutput | undefined> {
     let dynamoDBStreamsClient: DynamoDBStreamsClient | undefined = undefined;
 
     try {
@@ -214,10 +214,10 @@ class DynamoClient {
       logger.info(`Retrieved records from shard ${shardId}.`);
 
       if (streamRecords.Records && streamRecords.Records.length > 0) {
-        return streamRecords.Records;
+        return streamRecords;
       } else {
         logger.info(`No records found in shard ${shardId}.`);
-        return [];
+        return undefined;
       }
     } catch (error) {
       const err: Error = error as Error;
@@ -228,6 +228,64 @@ class DynamoClient {
       }
 
       throw new Error(`Failed to retrieve records from shard: ${err.message}`);
+    }
+  }
+
+  public async describeStream(streamArn: string | undefined): Promise<DescribeStreamCommandOutput> {
+    let dynamoDBStreamsClient: DynamoDBStreamsClient | undefined = undefined;
+
+    try {
+      logger.info('Initializing DynamoDB Streams client for stream description.');
+      dynamoDBStreamsClient = await this.getDynamoStreamsClient();
+      logger.info('DynamoDB Streams client initialized successfully.');
+
+      const describeStreamCommand: DescribeStreamCommand = new DescribeStreamCommand({
+        StreamArn: streamArn,
+      });
+
+      const streamDescription: DescribeStreamCommandOutput = await dynamoDBStreamsClient.send(describeStreamCommand);
+      logger.info(`Successfully described stream ${streamArn}`);
+
+      return streamDescription;
+    } catch (error) {
+      const err: Error = error as Error;
+      logger.error(`Error describing stream ${streamArn}: ${err}`);
+
+      throw new Error(`Failed to describe stream: ${err.message}`);
+    } finally {
+      if (dynamoDBStreamsClient) {
+        dynamoDBStreamsClient.destroy();
+      }
+    }
+  }
+
+  public async getShardIterator(params: { StreamArn: string | undefined; ShardId: string; ShardIteratorType: ShardIteratorType }): Promise<string | undefined> {
+    let dynamoDBStreamsClient: DynamoDBStreamsClient | undefined = undefined;
+
+    try {
+      logger.info('Initializing DynamoDB Streams client for shard iterator.');
+      dynamoDBStreamsClient = await this.getDynamoStreamsClient();
+      logger.info('DynamoDB Streams client initialized successfully.');
+
+      const command = new GetShardIteratorCommand({
+        StreamArn: params.StreamArn,
+        ShardId: params.ShardId,
+        ShardIteratorType: params.ShardIteratorType,
+      });
+
+      const response = await dynamoDBStreamsClient.send(command);
+      logger.info(`Retrieved shard iterator for shard ${params.ShardId}`);
+
+      return response.ShardIterator;
+    } catch (error) {
+      const err: Error = error as Error;
+      logger.error(`Error getting shard iterator for shard ${params.ShardId}: ${err}`);
+
+      throw new Error(`Failed to get shard iterator: ${err.message}`);
+    } finally {
+      if (dynamoDBStreamsClient) {
+        dynamoDBStreamsClient.destroy();
+      }
     }
   }
 

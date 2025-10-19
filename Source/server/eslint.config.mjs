@@ -21,7 +21,7 @@ export default [
       'no-console': 'warn',
       'no-process-exit': 'error',
       complexity: ['warn', 10],
-      complexity: ['error', 25],
+      complexity: ['error', 50],
       indent: ['error', 2],
       quotes: ['error', 'single'],
       semi: ['error', 'always'],

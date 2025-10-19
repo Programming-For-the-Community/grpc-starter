@@ -99,7 +99,7 @@ void drawUserBubble(Canvas canvas, Offset userOffset, GrpcUser user) {
 
   // Draw text (coordinates)
   TextSpan textSpan = TextSpan(
-    text: '(${user.currentX.toStringAsFixed(2)}, ${user.currentY.toStringAsFixed(2)})',
+    text: '${user.username}\n(${user.currentX.toStringAsFixed(2)}, ${user.currentY.toStringAsFixed(2)})',
     style: TextStyle(
       color: Colors.black,
       fontSize: appConfig.bubbleFontSize,

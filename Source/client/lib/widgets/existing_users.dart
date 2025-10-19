@@ -9,6 +9,8 @@ class ExistingUsers extends StatelessWidget {
   final Map<String, GrpcUser> users;
   final Function(GrpcUser) onUserTap;
   final Function(GrpcUser) onTakeTrip;
+  final Function(GrpcUser) onShowLastTrip;
+  final Function(GrpcUser) onMoveUser;
   final _logger = Logger();
 
   ExistingUsers({
@@ -16,12 +18,12 @@ class ExistingUsers extends StatelessWidget {
     required this.users,
     required this.onUserTap,
     required this.onTakeTrip,
+    required this.onShowLastTrip,
+    required this.onMoveUser
   });
 
   @override
   Widget build(BuildContext context) {
-    _logger.debug('ExistingUsers rebuilding with ${users.length} users');
-
     return Container(
       width: AppConfig().usersListDisplayWidth,
       decoration: BoxDecoration(
@@ -54,6 +56,8 @@ class ExistingUsers extends StatelessWidget {
                   user: user,
                   onTap: () => onUserTap(user),
                   onTakeTrip: () => onTakeTrip(user),
+                  onShowLastTrip: () => onShowLastTrip(user),
+                  onMoveUser: () => onMoveUser(user)
                 );
               },
             ),

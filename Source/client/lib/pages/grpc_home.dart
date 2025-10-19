@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_grpc_client/controllers/grid_interaction_controller.dart';
 
@@ -11,6 +10,9 @@ import '../painters/coordinate_grid_painter.dart';
 import '../widgets/existing_users.dart';
 import '../singletons/app_config.dart';
 import '../helpers/zoom_to_user.dart';
+import '../listeners/on_move_user.dart';
+import '../listeners/on_take_trip.dart';
+import '../listeners/on_show_last_trip.dart';
 
 class GrpcHomePage extends StatefulWidget {
   const GrpcHomePage({super.key, required this.title});
@@ -64,21 +66,15 @@ class _GrpcHomePageState extends State<GrpcHomePage> with WidgetsBindingObserver
             );
             returnedUser.color = AppConfig.userColors[colorIndex % AppConfig.userColors.length];
 
-            // Set User Paths Traveled if available
-            if (userResponse.user.pathsTraveled.isNotEmpty) {
-
-            }
-
-            if (userResponse.eventType == DynamoDBEvent.INSERT) {
-              _users.value[userResponse.userName] = returnedUser;
-              colorIndex++;
-              logger.info('New user added: ${userResponse.userName} at (${returnedUser.currentX}, ${returnedUser.currentY})');
-            } else if (userResponse.eventType == DynamoDBEvent.EXISTING || userResponse.eventType == DynamoDBEvent.MODIFY) {
-              _users.value.update(
+            if (userResponse.eventType == DynamoDBEvent.INSERT || userResponse.eventType == DynamoDBEvent.EXISTING || userResponse.eventType == DynamoDBEvent.MODIFY) {
+              final updatedUsers = Map<String, GrpcUser>.from(_users.value);
+              updatedUsers.update(
                 userResponse.userName,
                 (existing) {
                   logger.info('Updating user ${userResponse.userName} from (${existing.currentX}, ${existing.currentY}]) to (${returnedUser.currentX}, ${returnedUser.currentY})');
                   returnedUser.color = existing.color; // Preserve existing color
+                  returnedUser.showPath = existing.showPath; // Preserve path visibility
+                  returnedUser.pathToShow = existing.pathToShow; // Preserve path data
                   return returnedUser;
                 },
                 ifAbsent: () {
@@ -87,12 +83,15 @@ class _GrpcHomePageState extends State<GrpcHomePage> with WidgetsBindingObserver
                   return returnedUser;
                 },
               );
+              _users.value = updatedUsers;  // This will trigger the ValueListenable
             } else if(userResponse.eventType == DynamoDBEvent.REMOVE) {
-              _users.value.remove(userResponse.userName);
+              final updatedUsers = Map<String, GrpcUser>.from(_users.value);
+              updatedUsers.remove(userResponse.userName);
+              _users.value = updatedUsers;  // This will trigger the ValueListenable
               logger.info('Removed user: ${userResponse.userName}');
             }
+
             logger.debug('Current user count: ${_users.value.length}');
-            _users.notifyListeners();
           } else {
             logger.warning('Response Status: ${userResponse.status} - ${userResponse.message}');
           }
@@ -160,21 +159,36 @@ class _GrpcHomePageState extends State<GrpcHomePage> with WidgetsBindingObserver
                           });
                         },
                         onTakeTrip: (user) async {
-                          UserResponse response = await GrpcClient().takeTrip(user.username);
+                          onTakeTrip(
+                            context,
+                            _gridController,
+                            user
+                          );
 
-                          if (response.status == TrackerStatus.OK) {
-                            logger.info('Trip taken for user: ${user.username} to (${response.user.currentLocation.x}, ${response.user.currentLocation.y})');
-                            logger.info('Trip Details: ${response.user.pathsTraveled[response.user.pathsTraveled.length - 1]}');
-
-                            setState(() {
-                              _selectedUser = user;
-                              user.showPath = true;
-                            });
-
-                          } else {
-                            logger.warning('Response Status: ${response.status} - ${response.message}');
-                          }
+                          setState(() {
+                            _selectedUser = user;
+                          });
                         },
+                        onShowLastTrip: (user) async {
+                          onShowLastTrip(
+                              context,
+                              _gridController,
+                              user
+                          );
+
+                          setState(() {
+                            _selectedUser = user;
+                          });
+                        },
+                        onMoveUser: (user) => onMoveUser(
+                          context,
+                          _gridController,
+                          _users,
+                          (movedUser) => setState(() {
+                            _selectedUser = movedUser;
+                          }),
+                          user
+                        ),
                       );
                     },
                   ),

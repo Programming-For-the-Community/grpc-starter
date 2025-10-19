@@ -4,7 +4,7 @@ class GrpcUser {
   String username;
   double currentX;
   double currentY;
-  Map<int, List<List<double>>> pathsTraveled;
+  List<List<double>> pathToShow;
   late Color color;
   bool showPath = false;
 
@@ -12,9 +12,9 @@ class GrpcUser {
     required this.username,
     required this.currentX,
     required this.currentY,
-  }) : pathsTraveled = {};
+  }) : pathToShow = [];
 
-  void addPath(int pathId, List<List<double>> coordinates) {
-    pathsTraveled.putIfAbsent(pathId, () => coordinates);
+  void addPath(List<List<double>> coordinates) {
+    pathToShow = coordinates;
   }
 }

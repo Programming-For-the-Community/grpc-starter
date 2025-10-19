@@ -66,4 +66,16 @@ class GrpcClient {
       throw Exception('Failed to take trip: $e');
     }
   }
+
+  Future<UserResponse> getUser(String username) async {
+    final request = Username(name: username);
+
+    try {
+      final response = await trackerClient.getUser(request);
+
+      return response;
+    } catch (e) {
+      throw Exception('Failed to get user: $e');
+    }
+  }
 }
