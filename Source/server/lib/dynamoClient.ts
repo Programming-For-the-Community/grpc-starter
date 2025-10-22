@@ -1,4 +1,4 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, DescribeTableCommand, DescribeTableCommandOutput } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, GetCommandInput, PutCommand, PutCommandInput, ScanCommand, UpdateCommand, UpdateCommandInput } from '@aws-sdk/lib-dynamodb';
 import {
   DynamoDBStreamsClient,
@@ -13,7 +13,7 @@ import {
 } from '@aws-sdk/client-dynamodb-streams';
 
 // Internal Imports
-import { logger } from '../lib/logger';
+import { logger } from '../classes/logger';
 import { databaseConfig } from '../config/databaseConfig';
 import { getAssumedRoleCredentials } from './getAssumedRoleCredentials';
 
@@ -53,6 +53,18 @@ class DynamoClient {
     });
   }
 
+  private destroyDocumentClient(client: DynamoDBDocumentClient | undefined) {
+    if (client) {
+      client.destroy();
+    }
+  }
+
+  private destroyStreamsClient(client: DynamoDBStreamsClient | undefined) {
+    if (client) {
+      client.destroy();
+    }
+  }
+
   public async getItem(keyName: string, keyId: string, tableName: string | undefined = undefined): Promise<Record<string, any> | undefined> {
     let dynamoDocumentClient: DynamoDBDocumentClient | undefined = undefined;
 
@@ -71,15 +83,13 @@ class DynamoClient {
       logger.info(`${keyName}: ${keyId} retrieved successfully from DynamoDB.`);
       logger.debug('Retrieved item:', JSON.stringify(Item));
 
-      dynamoDocumentClient.destroy();
+      this.destroyDocumentClient(dynamoDocumentClient);
       return Item;
     } catch (error) {
       const err: Error = error as Error;
       logger.error(`Error retrieving ${keyName}: ${keyId} from DynamoDB: ${error}`);
 
-      if (dynamoDocumentClient) {
-        dynamoDocumentClient.destroy();
-      }
+      this.destroyDocumentClient(dynamoDocumentClient);
 
       throw new Error(`Failed to retrieve item: ${err.message}`);
     }
@@ -101,14 +111,12 @@ class DynamoClient {
       await dynamoDocumentClient.send(new PutCommand(putCommandInput));
       logger.info('Item inserted successfully into DynamoDB.');
 
-      dynamoDocumentClient.destroy();
+      this.destroyDocumentClient(dynamoDocumentClient);
     } catch (error) {
       const err: Error = error as Error;
       logger.error(`Error inserting item into DynamoDB: ${err}`);
 
-      if (dynamoDocumentClient) {
-        dynamoDocumentClient.destroy();
-      }
+      this.destroyDocumentClient(dynamoDocumentClient);
 
       throw new Error(`Failed to insert item: ${err.message}`);
     }
@@ -129,15 +137,13 @@ class DynamoClient {
       const { Items } = await dynamoDocumentClient.send(scanCommand);
       logger.info(`Table ${tableName || databaseConfig.tableName} scanned successfully.`);
 
-      dynamoDocumentClient.destroy();
+      this.destroyDocumentClient(dynamoDocumentClient);
       return Items;
     } catch (error) {
       const err: Error = error as Error;
       logger.error(`Error scanning table ${tableName || databaseConfig.tableName}: ${err}`);
 
-      if (dynamoDocumentClient) {
-        dynamoDocumentClient.destroy();
-      }
+      this.destroyDocumentClient(dynamoDocumentClient);
 
       throw new Error(`Failed to scan table: ${err.message}`);
     }
@@ -190,9 +196,7 @@ class DynamoClient {
       const err: Error = error as Error;
       logger.error(`Error streaming table ${tableArn}: ${err}`);
 
-      if (dynamoDBStreamsClient) {
-        dynamoDBStreamsClient.destroy();
-      }
+      this.destroyStreamsClient(dynamoDBStreamsClient);
 
       throw new Error(`Failed to stream table: ${err.message}`);
     }
@@ -253,9 +257,7 @@ class DynamoClient {
 
       throw new Error(`Failed to describe stream: ${err.message}`);
     } finally {
-      if (dynamoDBStreamsClient) {
-        dynamoDBStreamsClient.destroy();
-      }
+      this.destroyStreamsClient(dynamoDBStreamsClient);
     }
   }
 
@@ -283,9 +285,7 @@ class DynamoClient {
 
       throw new Error(`Failed to get shard iterator: ${err.message}`);
     } finally {
-      if (dynamoDBStreamsClient) {
-        dynamoDBStreamsClient.destroy();
-      }
+      this.destroyStreamsClient(dynamoDBStreamsClient);
     }
   }
 
@@ -324,16 +324,43 @@ class DynamoClient {
       await dynamoDocumentClient.send(new UpdateCommand(updateCommand));
       logger.info(`Item ${keyName} on table ${tableName || databaseConfig.tableName}: Successfully updated values ${JSON.stringify(updateValues)}.`);
 
-      dynamoDocumentClient.destroy();
+      this.destroyDocumentClient(dynamoDocumentClient);
     } catch (error) {
       const err: Error = error as Error;
       logger.error(`Error updating item with ${keyName}: ${updateValues.get(keyName)} in DynamoDB: ${err}`);
 
-      if (dynamoDocumentClient) {
-        dynamoDocumentClient.destroy();
-      }
+      this.destroyDocumentClient(dynamoDocumentClient);
 
       throw new Error(`Failed to update item: ${err.message}`);
+    }
+  }
+
+  public async isDynamoActive(): Promise<boolean> {
+    let dynamoDocumentClient: DynamoDBDocumentClient | undefined = undefined;
+
+    try {
+      dynamoDocumentClient = await this.getDynamoDocumentClient();
+
+      const describeTable: DescribeTableCommand = new DescribeTableCommand({
+        TableName: databaseConfig.tableName,
+      });
+
+      const tableInfo: DescribeTableCommandOutput = await dynamoDocumentClient.send(describeTable);
+      logger.info(`DynamoDB Table Status: ${tableInfo.Table?.TableStatus}`);
+
+      if (tableInfo.Table?.TableStatus !== 'ACTIVE') {
+        logger.error(`DynamoDB Table ${databaseConfig.tableName} is not active.`);
+        dynamoDocumentClient.destroy();
+        return false;
+      }
+
+      this.destroyDocumentClient(dynamoDocumentClient);
+
+      return true;
+    } catch (error: Error | any) {
+      this.destroyDocumentClient(dynamoDocumentClient);
+      logger.error(`DynamoDB is not active: ${error.message}`);
+      return false;
     }
   }
 }

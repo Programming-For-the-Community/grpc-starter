@@ -2,7 +2,7 @@ import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { ServerWritableStream } from '@grpc/grpc-js';
 import { ShardIteratorType, GetRecordsCommandOutput } from '@aws-sdk/client-dynamodb-streams';
 
-import { logger } from '../lib/logger';
+import { logger } from '../classes/logger';
 import { dynamoClient } from '../lib/dynamoClient';
 import { databaseConfig } from '../config/databaseConfig';
 import { Username, LocationResponse, TrackerStatus, DynamoDBEvent, dynamoDBEventFromJSON } from '../protoDefinitions/tracker';

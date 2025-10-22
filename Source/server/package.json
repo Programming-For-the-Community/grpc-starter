@@ -5,13 +5,14 @@
   "main": "server.ts",
   "type": "commonjs",
   "scripts": {
-    "build": "npm run lint && tsc",
+    "build": "npm run generate:proto && tsc",
     "start": "npm run build && node dist/server.js",
     "dev": "npm run format && npm run lint:fix && tsnd --respawn server.ts",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write **/*.{js,ts}",
-    "generate:proto": "npx protoc --ts_proto_out=protoDefinitions --proto_path=../proto ../proto/*.proto"
+    "generate:proto:dev": "npx protoc --ts_proto_out=protoDefinitions --proto_path=../proto ../proto/*.proto",
+    "generate:proto": "npx protoc --ts_proto_out=protoDefinitions --proto_path=./proto ./proto/*.proto"
   },
   "keywords": [
     "gRPC",
@@ -24,6 +25,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.788.0",
     "@aws-sdk/client-dynamodb-streams": "^3.823.0",
+    "@aws-sdk/client-secrets-manager": "^3.914.0",
     "@aws-sdk/client-sts": "^3.844.0",
     "@aws-sdk/lib-dynamodb": "^3.789.0",
     "@grpc/grpc-js": "^1.13.3",
@@ -31,6 +33,7 @@
     "aws-sdk": "^2.1692.0",
     "dotenv": "^16.5.0",
     "google-proto-files": "^4.2.0",
+    "grpc-health-check": "^2.1.0",
     "grpc-node-server": "file:",
     "log4js": "^6.9.1",
     "rxjs": "^7.8.2"
@@ -40,7 +43,7 @@
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",
     "dotenv-cli": "^8.0.0",
-    "eslint": "^9.25.1",
+    "eslint": "^9.38.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.2.6",
     "grpc_tools_node_protoc_ts": "^5.3.3",

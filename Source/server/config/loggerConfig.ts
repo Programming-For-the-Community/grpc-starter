@@ -1,11 +1,8 @@
-import dotenv from 'dotenv';
-import process from 'process';
-
-dotenv.config({ path: process.env.NODE_ENV !== undefined ? process.env.NODE_ENV : '.env' });
+import { appConfig } from '../server';
 
 const defaultFormat = '[%s] %s: [processor: %s, platform: %s@%s, app: %s@%s]: %s';
 
 export const loggerConfig = {
-  level: process.env.LOG_LEVEL === undefined ? 'info' : process.env.LOG_LEVEL,
-  format: process.env.LOG_FORMAT === undefined ? defaultFormat : process.env.LOG_FORMAT,
+  level: appConfig.LOG_LEVEL ?? 'info',
+  format: appConfig.LOG_FORMAT ?? defaultFormat,
 };

@@ -1,7 +1,7 @@
 import * as grpc from '@grpc/grpc-js';
 
 // Internal Imports
-import { logger } from '../lib/logger';
+import { logger } from '../classes/logger';
 import { dynamoClient } from '../lib/dynamoClient';
 import { Location } from '../protoDefinitions/tracker';
 import { getRandomCoords } from '../lib/getRandomCoords';
