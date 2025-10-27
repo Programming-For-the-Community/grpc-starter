@@ -1,11 +1,13 @@
 import * as grpc from '@grpc/grpc-js';
 
 // Internal Imports
-import { logger } from '../classes/logger';
-import { dynamoClient } from '../lib/dynamoClient';
-import { User, UserResponse, Username, TrackerStatus } from '../protoDefinitions/tracker';
+import { Logger } from '../../singletons/logger';
+import { dynamoClient } from '../../singletons/dynamoClient';
+import { User, UserResponse, Username, TrackerStatus } from '../../protoDefinitions/tracker';
 
 export async function getUser(call: grpc.ServerUnaryCall<Username, UserResponse>, callback: grpc.sendUnaryData<UserResponse>) {
+  const logger: Logger = Logger.get();
+
   const { name } = call.request;
 
   try {

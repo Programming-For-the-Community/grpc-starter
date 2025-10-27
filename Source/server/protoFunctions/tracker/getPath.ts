@@ -1,11 +1,13 @@
 import * as grpc from '@grpc/grpc-js';
 
 // Internal Imports
-import { logger } from '../classes/logger';
-import { dynamoClient } from '../lib/dynamoClient';
-import { LocationResponse, TrackerStatus, Location, Path, PathRequest } from '../protoDefinitions/tracker';
+import { Logger } from '../../singletons/logger';
+import { dynamoClient } from '../../singletons/dynamoClient';
+import { LocationResponse, TrackerStatus, Location, Path, PathRequest } from '../../protoDefinitions/tracker';
 
 export async function getPath(call: grpc.ServerWritableStream<PathRequest, LocationResponse>) {
+  const logger: Logger = Logger.get();
+
   try {
     logger.info('Starting real-time streaming for GetLocation.');
 

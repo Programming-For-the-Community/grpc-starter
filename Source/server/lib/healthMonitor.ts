@@ -1,29 +1,29 @@
-import * as healthCheck from 'grpc-health-check';
-
 // Internal Imports
-import { logger } from '../classes/logger';
-import { healthCheckService } from '../server';
-import { serverConfig } from '../config/serverConfig';
-import { dynamoClient } from './dynamoClient';
+import { Logger } from '../singletons/logger';
+import { config } from '../server';
+import { dynamoClient } from '../singletons/dynamoClient';
+import { ServingStatus } from '../protoFunctions/health/healthService';
 
 export function monitorDatabaseHealth() {
+  const logger: Logger = Logger.get();
+
   setInterval(async () => {
     try {
       const dbHealthy: boolean = await dynamoClient.isDynamoActive();
 
       if (dbHealthy) {
         logger.info('Database health healthy');
-        healthCheckService.setStatus('tracker.Tracker', healthCheck.servingStatus.SERVING);
+        config.healthCheckService!.setStatus('tracker.Tracker', ServingStatus.SERVING);
       } else {
         logger.error('Database health unhealthy');
-        healthCheckService.setStatus('tracker.Tracker', healthCheck.servingStatus.NOT_SERVING);
+        config.healthCheckService!.setStatus('tracker.Tracker', ServingStatus.NOT_SERVING);
       }
 
-      healthCheckService.setStatus('tracker.Tracker', healthCheck.servingStatus.SERVING);
+      config.healthCheckService!.setStatus('', ServingStatus.SERVING);
     } catch (error) {
       logger.error('Server down:', error);
-      healthCheckService.setStatus('', healthCheck.servingStatus.NOT_SERVING);
-      healthCheckService.setStatus('tracker.Tracker', healthCheck.servingStatus.NOT_SERVING);
+      config.healthCheckService!.setStatus('', ServingStatus.NOT_SERVING);
+      config.healthCheckService!.setStatus('tracker.Tracker', ServingStatus.NOT_SERVING);
     }
-  }, serverConfig.healthCheckIntervalMs);
+  }, config.serverConfig!.healthCheckIntervalMs);
 }

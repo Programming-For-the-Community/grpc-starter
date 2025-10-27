@@ -2,16 +2,18 @@ import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { ServerWritableStream } from '@grpc/grpc-js';
 import { ShardIteratorType, GetRecordsCommandOutput } from '@aws-sdk/client-dynamodb-streams';
 
-import { logger } from '../classes/logger';
-import { dynamoClient } from '../lib/dynamoClient';
-import { databaseConfig } from '../config/databaseConfig';
-import { Username, LocationResponse, TrackerStatus, DynamoDBEvent, dynamoDBEventFromJSON } from '../protoDefinitions/tracker';
+import { Logger } from '../../singletons/logger';
+import { dynamoClient } from '../../singletons/dynamoClient';
+import { config } from '../../server';
+import { Username, LocationResponse, TrackerStatus, DynamoDBEvent, dynamoDBEventFromJSON } from '../../protoDefinitions/tracker';
 
 /**
  * Real-time streaming implementation for GetUsers using DynamoDB Streams.
  * @param call gRPC server writable stream.
  */
 export const getLocation = async (call: ServerWritableStream<Username, LocationResponse>): Promise<void> => {
+  const logger: Logger = Logger.get();
+
   try {
     logger.info('Starting real-time streaming for GetLocation.');
 
@@ -48,7 +50,7 @@ export const getLocation = async (call: ServerWritableStream<Username, LocationR
     // Poll all shards
     while (true) {
       // Refresh shards periodically
-      await dynamoClient.streamTable(shardIterators, ShardIteratorType.LATEST, databaseConfig.tableStreamArn);
+      await dynamoClient.streamTable(shardIterators, ShardIteratorType.LATEST, config.databaseConfig!.tableStreamArn);
 
       for (const shardId of Object.keys(shardIterators)) {
         const iterator = shardIterators[shardId];

@@ -1,23 +1,38 @@
-FROM node:25.0.0-slim
-
-# Set Working Dirctory
+# ========================
+# Build Stage
+# ========================
+FROM node:25.0.0-slim AS build
 WORKDIR /app
 
-# Environment Variables
-ENV NODE_ENV=/runtimeconfig/.env.dev
+COPY server ./server
+COPY proto ./proto
 
-RUN mkdir proto
+# Install dependencies
+WORKDIR /app/server
+RUN npm ci
+RUN npm run build
+
+# ========================
+# Runtime Stage
+# ========================
+FROM node:25.0.0-slim
+WORKDIR /app
+
+# Environment setup
 RUN mkdir /runtimeconfig
+ENV NODE_ENV=/runtimeconfig/.env.docker
 
-# Copy Source Code
-COPY ./proto/tracker.proto proto
-COPY ./server .
-COPY ./server/.env.dev /runtimeconfig/.env.dev
+# Copy built artifacts and proto files from build stage
+COPY --from=build /app/server/dist ./dist
+COPY --from=build /app/server/node_modules ./node_modules
+COPY --from=build /app/proto ./proto
+COPY --from=build /app/server/package*.json ./
 
-RUN npm install && npm run build
+# UNCOMMENT FOR LOCAL TESTING
+COPY server/.env.docker /runtimeconfig/.env.docker
 
-EXPOSE 8443
-EXPOSE 8080
-EXPOSE 50051
+# Install only production deps
+RUN npm ci --omit=dev
 
+EXPOSE 8443 8080 50051
 CMD ["npm", "run", "start"]

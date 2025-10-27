@@ -1,11 +1,11 @@
 import { STSClient, AssumeRoleCommand } from '@aws-sdk/client-sts';
 
-import { databaseConfig } from '../config/databaseConfig';
+import { config } from '../server';
 
 export const getAssumedRoleCredentials = async () => {
-  const stsClient = new STSClient({ region: databaseConfig.awsRegion });
+  const stsClient = new STSClient({ region: config.databaseConfig!.awsRegion });
   const assumeRoleCommand = new AssumeRoleCommand({
-    RoleArn: databaseConfig.grpcDynamoDBRoleArn,
+    RoleArn: config.databaseConfig!.grpcDynamoDBRoleArn,
     RoleSessionName: 'grpcDynamoSession',
   });
 

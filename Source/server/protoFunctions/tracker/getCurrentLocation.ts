@@ -1,11 +1,13 @@
 import * as grpc from '@grpc/grpc-js';
 
 // Internal Imports
-import { logger } from '../classes/logger';
-import { dynamoClient } from '../lib/dynamoClient';
-import { User, LocationResponse, Username, TrackerStatus } from '../protoDefinitions/tracker';
+import { Logger } from '../../singletons/logger';
+import { dynamoClient } from '../../singletons/dynamoClient';
+import { User, LocationResponse, Username, TrackerStatus } from '../../protoDefinitions/tracker';
 
 export async function getCurrentLocation(call: grpc.ServerUnaryCall<Username, LocationResponse>, callback: grpc.sendUnaryData<LocationResponse>) {
+  const logger: Logger = Logger.get();
+
   const { name } = call.request;
 
   try {

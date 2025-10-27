@@ -1,11 +1,11 @@
 import * as grpc from '@grpc/grpc-js';
 
 // Internal Imports
-import { logger } from '../classes/logger';
-import { dynamoClient } from '../lib/dynamoClient';
-import { Location } from '../protoDefinitions/tracker';
-import { getRandomCoords } from '../lib/getRandomCoords';
-import { UserResponse, Username, TrackerStatus } from '../protoDefinitions/tracker';
+import { Logger } from '../../singletons/logger';
+import { dynamoClient } from '../../singletons/dynamoClient';
+import { Location } from '../../protoDefinitions/tracker';
+import { getRandomCoords } from '../../lib/getRandomCoords';
+import { UserResponse, Username, TrackerStatus } from '../../protoDefinitions/tracker';
 
 /**
  * Creates a new user in the DynamoDB database.
@@ -13,6 +13,8 @@ import { UserResponse, Username, TrackerStatus } from '../protoDefinitions/track
  * @param callback grpc callback to send the response.
  */
 export async function moveUser(call: grpc.ServerUnaryCall<Username, UserResponse>, callback: grpc.sendUnaryData<UserResponse>) {
+  const logger: Logger = Logger.get();
+
   try {
     // Randomly generate new coordinates within the UI dimensions
     const newLocation: Location = getRandomCoords();

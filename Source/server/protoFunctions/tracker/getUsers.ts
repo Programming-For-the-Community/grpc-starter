@@ -1,17 +1,19 @@
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { ServerWritableStream } from '@grpc/grpc-js';
-import { ShardIteratorType, DescribeStreamCommandOutput, GetRecordsCommandOutput, Shard } from '@aws-sdk/client-dynamodb-streams';
+import { DescribeStreamCommandOutput, GetRecordsCommandOutput, Shard } from '@aws-sdk/client-dynamodb-streams';
 
-import { logger } from '../classes/logger';
-import { dynamoClient } from '../lib/dynamoClient';
-import { databaseConfig } from '../config/databaseConfig';
-import { RealTimeUserResponse, TrackerStatus, DynamoDBEvent, dynamoDBEventFromJSON } from '../protoDefinitions/tracker';
+import { Logger } from '../../singletons/logger';
+import { dynamoClient } from '../../singletons/dynamoClient';
+import { config } from '../../server';
+import { RealTimeUserResponse, TrackerStatus, DynamoDBEvent, dynamoDBEventFromJSON } from '../../protoDefinitions/tracker';
 
 /**
  * Real-time streaming implementation for GetUsers using DynamoDB Streams.
  * @param call gRPC server writable stream.
  */
 export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserResponse>): Promise<void> => {
+  const logger: Logger = Logger.get();
+
   let running: boolean = true;
 
   // Handle client disconnection
@@ -51,7 +53,7 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
     while (running) {
       // Refresh shards periodically
       // Refresh stream description to catch new or expired shards
-      const streamDescription: DescribeStreamCommandOutput = await dynamoClient.describeStream(databaseConfig.tableStreamArn);
+      const streamDescription: DescribeStreamCommandOutput = await dynamoClient.describeStream(config.databaseConfig!.tableStreamArn);
       const shards: Shard[] | undefined = streamDescription.StreamDescription?.Shards || [];
 
       // Initialize iterators for new shards
@@ -59,7 +61,7 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
         if (!shard.ShardId || shardIterators[shard.ShardId]) continue;
 
         const iterator = await dynamoClient.getShardIterator({
-          StreamArn: databaseConfig.tableStreamArn,
+          StreamArn: config.databaseConfig!.tableStreamArn,
           ShardId: shard.ShardId,
           ShardIteratorType: 'TRIM_HORIZON', // Get all records, not just new ones
         });
@@ -140,7 +142,7 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
         }
 
         // Delay the next polling iteration using REFRESH_FREQUENCY_MS
-        await new Promise((resolve) => setTimeout(resolve, databaseConfig.refreshFrequencyMs));
+        await new Promise((resolve) => setTimeout(resolve, config.databaseConfig!.refreshFrequencyMs));
       }
     }
   } catch (error) {

@@ -18,5 +18,11 @@
   ],
   "exclude": [
     "node_modules"                     // Exclude node_modules
-  ]
+  ],
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  }
 }

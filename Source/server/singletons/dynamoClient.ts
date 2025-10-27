@@ -13,12 +13,14 @@ import {
 } from '@aws-sdk/client-dynamodb-streams';
 
 // Internal Imports
-import { logger } from '../classes/logger';
-import { databaseConfig } from '../config/databaseConfig';
-import { getAssumedRoleCredentials } from './getAssumedRoleCredentials';
+import { Logger } from '../singletons/logger';
+import { config } from '../server';
+import { getAssumedRoleCredentials } from '../lib/getAssumedRoleCredentials';
 
 class DynamoClient {
   private static instance: DynamoClient;
+  private logger = Logger.get();
+
   constructor() {
     if (DynamoClient.instance) {
       return DynamoClient.instance;
@@ -38,7 +40,7 @@ class DynamoClient {
   private async getDynamoDocumentClient(): Promise<DynamoDBDocumentClient> {
     const credentials = await getAssumedRoleCredentials();
     const dbClient: DynamoDBClient = new DynamoDBClient({
-      region: databaseConfig.awsRegion,
+      region: config.databaseConfig!.awsRegion,
       credentials,
     });
 
@@ -48,7 +50,7 @@ class DynamoClient {
   private async getDynamoStreamsClient(): Promise<DynamoDBStreamsClient> {
     const credentials = await getAssumedRoleCredentials();
     return new DynamoDBStreamsClient({
-      region: databaseConfig.awsRegion,
+      region: config.databaseConfig!.awsRegion,
       credentials,
     });
   }
@@ -69,25 +71,25 @@ class DynamoClient {
     let dynamoDocumentClient: DynamoDBDocumentClient | undefined = undefined;
 
     try {
-      logger.info('Initializing dynamoDB clients for user retrieval.');
+      this.logger.info('Initializing dynamoDB clients for user retrieval.');
       dynamoDocumentClient = await this.getDynamoDocumentClient();
-      logger.info('DynamoDB clients initialized successfully for user retrieval.');
+      this.logger.info('DynamoDB clients initialized successfully for user retrieval.');
 
       const getCommand: GetCommandInput = {
-        TableName: tableName || databaseConfig.tableName,
+        TableName: tableName || config.databaseConfig!.tableName,
         Key: { [keyName]: keyId },
       };
 
       const { Item } = await dynamoDocumentClient.send(new GetCommand(getCommand));
 
-      logger.info(`${keyName}: ${keyId} retrieved successfully from DynamoDB.`);
-      logger.debug('Retrieved item:', JSON.stringify(Item));
+      this.logger.info(`${keyName}: ${keyId} retrieved successfully from DynamoDB.`);
+      this.logger.debug('Retrieved item:', JSON.stringify(Item));
 
       this.destroyDocumentClient(dynamoDocumentClient);
       return Item;
     } catch (error) {
       const err: Error = error as Error;
-      logger.error(`Error retrieving ${keyName}: ${keyId} from DynamoDB: ${error}`);
+      this.logger.error(`Error retrieving ${keyName}: ${keyId} from DynamoDB: ${error}`);
 
       this.destroyDocumentClient(dynamoDocumentClient);
 
@@ -99,22 +101,22 @@ class DynamoClient {
     let dynamoDocumentClient: DynamoDBDocumentClient | undefined = undefined;
 
     try {
-      logger.info('Initializing dynamoDB clients for item insertion.');
+      this.logger.info('Initializing dynamoDB clients for item insertion.');
       dynamoDocumentClient = await this.getDynamoDocumentClient();
-      logger.info('DynamoDB clients initialized successfully for item insertion.');
+      this.logger.info('DynamoDB clients initialized successfully for item insertion.');
 
       const putCommandInput: PutCommandInput = {
-        TableName: tableName || databaseConfig.tableName,
+        TableName: tableName || config.databaseConfig!.tableName,
         Item: item,
       };
 
       await dynamoDocumentClient.send(new PutCommand(putCommandInput));
-      logger.info('Item inserted successfully into DynamoDB.');
+      this.logger.info('Item inserted successfully into DynamoDB.');
 
       this.destroyDocumentClient(dynamoDocumentClient);
     } catch (error) {
       const err: Error = error as Error;
-      logger.error(`Error inserting item into DynamoDB: ${err}`);
+      this.logger.error(`Error inserting item into DynamoDB: ${err}`);
 
       this.destroyDocumentClient(dynamoDocumentClient);
 
@@ -126,22 +128,22 @@ class DynamoClient {
     let dynamoDocumentClient: DynamoDBDocumentClient | undefined = undefined;
 
     try {
-      logger.info('Initializing dynamoDB clients for table scan.');
+      this.logger.info('Initializing dynamoDB clients for table scan.');
       dynamoDocumentClient = await this.getDynamoDocumentClient();
-      logger.info('DynamoDB clients initialized successfully for table scan.');
+      this.logger.info('DynamoDB clients initialized successfully for table scan.');
 
       const scanCommand: ScanCommand = new ScanCommand({
-        TableName: tableName || databaseConfig.tableName,
+        TableName: tableName || config.databaseConfig!.tableName,
       });
 
       const { Items } = await dynamoDocumentClient.send(scanCommand);
-      logger.info(`Table ${tableName || databaseConfig.tableName} scanned successfully.`);
+      this.logger.info(`Table ${tableName || config.databaseConfig!.tableName} scanned successfully.`);
 
       this.destroyDocumentClient(dynamoDocumentClient);
       return Items;
     } catch (error) {
       const err: Error = error as Error;
-      logger.error(`Error scanning table ${tableName || databaseConfig.tableName}: ${err}`);
+      this.logger.error(`Error scanning table ${tableName || config.databaseConfig!.tableName}: ${err}`);
 
       this.destroyDocumentClient(dynamoDocumentClient);
 
@@ -153,33 +155,33 @@ class DynamoClient {
     let dynamoDBStreamsClient: DynamoDBStreamsClient | undefined = undefined;
 
     try {
-      logger.info('Initializing DynamoDB Streams client for table streaming.');
+      this.logger.info('Initializing DynamoDB Streams client for table streaming.');
       dynamoDBStreamsClient = await this.getDynamoStreamsClient();
-      logger.info('DynamoDB Streams client initialized successfully.');
+      this.logger.info('DynamoDB Streams client initialized successfully.');
 
       const describeStreamCommand: DescribeStreamCommand = new DescribeStreamCommand({
-        StreamArn: tableArn || databaseConfig.tableStreamArn,
+        StreamArn: tableArn || config.databaseConfig!.tableStreamArn,
       });
 
       const streamDescription: DescribeStreamCommandOutput = await dynamoDBStreamsClient.send(describeStreamCommand);
       const shards: Shard[] = streamDescription.StreamDescription?.Shards || [];
 
       if (!streamDescription.StreamDescription?.Shards || streamDescription.StreamDescription.Shards.length === 0) {
-        logger.warn(`No shards found in the stream for table ${tableArn}.`);
+        this.logger.warn(`No shards found in the stream for table ${tableArn}.`);
         return;
       }
 
       // Loop through each shard and get the shard iterator
-      logger.info(`Found ${shards.length} shards in the stream for table ${tableArn || databaseConfig.tableStreamArn}.`);
+      this.logger.info(`Found ${shards.length} shards in the stream for table ${tableArn || config.databaseConfig!.tableStreamArn}.`);
       for (const shard of shards) {
         if (!shard || !shard.ShardId) {
-          logger.warn('Shard is undefined or missing ShardId.');
+          this.logger.warn('Shard is undefined or missing ShardId.');
           continue;
         }
 
         if (!shardIterators[shard.ShardId]) {
           const getShardIteratorCommand: GetShardIteratorCommand = new GetShardIteratorCommand({
-            StreamArn: tableArn || databaseConfig.tableStreamArn,
+            StreamArn: tableArn || config.databaseConfig!.tableStreamArn,
             ShardId: shard.ShardId,
             ShardIteratorType: shardIteratorType,
           });
@@ -189,12 +191,12 @@ class DynamoClient {
         }
       }
 
-      logger.info(`Successfully retrieved shard iterator for table ${tableArn}.`);
+      this.logger.info(`Successfully retrieved shard iterator for table ${tableArn}.`);
 
       return;
     } catch (error) {
       const err: Error = error as Error;
-      logger.error(`Error streaming table ${tableArn}: ${err}`);
+      this.logger.error(`Error streaming table ${tableArn}: ${err}`);
 
       this.destroyStreamsClient(dynamoDBStreamsClient);
 
@@ -206,26 +208,26 @@ class DynamoClient {
     let dynamoDBStreamsClient: DynamoDBStreamsClient | undefined = undefined;
 
     try {
-      logger.info(`Initializing DynamoDB Streams client for shard ${shardId}.`);
+      this.logger.info(`Initializing DynamoDB Streams client for shard ${shardId}.`);
       dynamoDBStreamsClient = await this.getDynamoStreamsClient();
-      logger.info(`DynamoDB Streams client initialized successfully for shard ${shardId}.`);
+      this.logger.info(`DynamoDB Streams client initialized successfully for shard ${shardId}.`);
 
       const getRecordsCommand: GetRecordsCommand = new GetRecordsCommand({
         ShardIterator: shardIterator,
       });
 
       const streamRecords: GetRecordsCommandOutput = await dynamoDBStreamsClient.send(getRecordsCommand);
-      logger.info(`Retrieved records from shard ${shardId}.`);
+      this.logger.info(`Retrieved records from shard ${shardId}.`);
 
       if (streamRecords.Records && streamRecords.Records.length > 0) {
         return streamRecords;
       } else {
-        logger.info(`No records found in shard ${shardId}.`);
+        this.logger.info(`No records found in shard ${shardId}.`);
         return undefined;
       }
     } catch (error) {
       const err: Error = error as Error;
-      logger.error(`Error retrieving records from shard ${shardId}: ${err}`);
+      this.logger.error(`Error retrieving records from shard ${shardId}: ${err}`);
 
       if (dynamoDBStreamsClient) {
         dynamoDBStreamsClient.destroy();
@@ -239,21 +241,21 @@ class DynamoClient {
     let dynamoDBStreamsClient: DynamoDBStreamsClient | undefined = undefined;
 
     try {
-      logger.info('Initializing DynamoDB Streams client for stream description.');
+      this.logger.info('Initializing DynamoDB Streams client for stream description.');
       dynamoDBStreamsClient = await this.getDynamoStreamsClient();
-      logger.info('DynamoDB Streams client initialized successfully.');
+      this.logger.info('DynamoDB Streams client initialized successfully.');
 
       const describeStreamCommand: DescribeStreamCommand = new DescribeStreamCommand({
         StreamArn: streamArn,
       });
 
       const streamDescription: DescribeStreamCommandOutput = await dynamoDBStreamsClient.send(describeStreamCommand);
-      logger.info(`Successfully described stream ${streamArn}`);
+      this.logger.info(`Successfully described stream ${streamArn}`);
 
       return streamDescription;
     } catch (error) {
       const err: Error = error as Error;
-      logger.error(`Error describing stream ${streamArn}: ${err}`);
+      this.logger.error(`Error describing stream ${streamArn}: ${err}`);
 
       throw new Error(`Failed to describe stream: ${err.message}`);
     } finally {
@@ -265,9 +267,9 @@ class DynamoClient {
     let dynamoDBStreamsClient: DynamoDBStreamsClient | undefined = undefined;
 
     try {
-      logger.info('Initializing DynamoDB Streams client for shard iterator.');
+      this.logger.info('Initializing DynamoDB Streams client for shard iterator.');
       dynamoDBStreamsClient = await this.getDynamoStreamsClient();
-      logger.info('DynamoDB Streams client initialized successfully.');
+      this.logger.info('DynamoDB Streams client initialized successfully.');
 
       const command = new GetShardIteratorCommand({
         StreamArn: params.StreamArn,
@@ -276,12 +278,12 @@ class DynamoClient {
       });
 
       const response = await dynamoDBStreamsClient.send(command);
-      logger.info(`Retrieved shard iterator for shard ${params.ShardId}`);
+      this.logger.info(`Retrieved shard iterator for shard ${params.ShardId}`);
 
       return response.ShardIterator;
     } catch (error) {
       const err: Error = error as Error;
-      logger.error(`Error getting shard iterator for shard ${params.ShardId}: ${err}`);
+      this.logger.error(`Error getting shard iterator for shard ${params.ShardId}: ${err}`);
 
       throw new Error(`Failed to get shard iterator: ${err.message}`);
     } finally {
@@ -293,9 +295,9 @@ class DynamoClient {
     let dynamoDocumentClient: DynamoDBDocumentClient | undefined = undefined;
 
     try {
-      logger.info('Initializing dynamoDB clients for item update.');
+      this.logger.info('Initializing dynamoDB clients for item update.');
       dynamoDocumentClient = await this.getDynamoDocumentClient();
-      logger.info('DynamoDB clients initialized successfully for item update.');
+      this.logger.info('DynamoDB clients initialized successfully for item update.');
 
       let updateExpression = 'SET';
       const expressionAttributeNames: Record<string, string> = {};
@@ -314,7 +316,7 @@ class DynamoClient {
       updateExpression = updateExpression.replace(/,+\s*$/, '');
 
       const updateCommand: UpdateCommandInput = {
-        TableName: tableName || databaseConfig.tableName,
+        TableName: tableName || config.databaseConfig!.tableName,
         Key: { [keyName]: keyValue },
         UpdateExpression: updateExpression,
         ExpressionAttributeNames: expressionAttributeNames,
@@ -322,12 +324,12 @@ class DynamoClient {
       };
 
       await dynamoDocumentClient.send(new UpdateCommand(updateCommand));
-      logger.info(`Item ${keyName} on table ${tableName || databaseConfig.tableName}: Successfully updated values ${JSON.stringify(updateValues)}.`);
+      this.logger.info(`Item ${keyName} on table ${tableName || config.databaseConfig!.tableName}: Successfully updated values ${JSON.stringify(updateValues)}.`);
 
       this.destroyDocumentClient(dynamoDocumentClient);
     } catch (error) {
       const err: Error = error as Error;
-      logger.error(`Error updating item with ${keyName}: ${updateValues.get(keyName)} in DynamoDB: ${err}`);
+      this.logger.error(`Error updating item with ${keyName}: ${updateValues.get(keyName)} in DynamoDB: ${err}`);
 
       this.destroyDocumentClient(dynamoDocumentClient);
 
@@ -342,14 +344,14 @@ class DynamoClient {
       dynamoDocumentClient = await this.getDynamoDocumentClient();
 
       const describeTable: DescribeTableCommand = new DescribeTableCommand({
-        TableName: databaseConfig.tableName,
+        TableName: config.databaseConfig!.tableName,
       });
 
       const tableInfo: DescribeTableCommandOutput = await dynamoDocumentClient.send(describeTable);
-      logger.info(`DynamoDB Table Status: ${tableInfo.Table?.TableStatus}`);
+      this.logger.info(`DynamoDB Table Status: ${tableInfo.Table?.TableStatus}`);
 
       if (tableInfo.Table?.TableStatus !== 'ACTIVE') {
-        logger.error(`DynamoDB Table ${databaseConfig.tableName} is not active.`);
+        this.logger.error(`DynamoDB Table ${config.databaseConfig!.tableName} is not active.`);
         dynamoDocumentClient.destroy();
         return false;
       }
@@ -359,7 +361,7 @@ class DynamoClient {
       return true;
     } catch (error: Error | any) {
       this.destroyDocumentClient(dynamoDocumentClient);
-      logger.error(`DynamoDB is not active: ${error.message}`);
+      this.logger.error(`DynamoDB is not active: ${error.message}`);
       return false;
     }
   }

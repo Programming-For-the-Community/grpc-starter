@@ -1,3 +1,4 @@
+import process from 'process';
 import dotenv from 'dotenv';
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 

@@ -1,12 +1,12 @@
 import * as grpc from '@grpc/grpc-js';
 
 // Internal Imports
-import { logger } from '../classes/logger';
-import { dynamoClient } from '../lib/dynamoClient';
-import { Location } from '../protoDefinitions/tracker';
-import { pathLimits } from '../config/serverConfig';
-import { getRandomCoords } from '../lib/getRandomCoords';
-import { UserResponse, Username, TrackerStatus, User } from '../protoDefinitions/tracker';
+import { config } from '../../server';
+import { Logger } from '../../singletons/logger';
+import { Location } from '../../protoDefinitions/tracker';
+import { getRandomCoords } from '../../lib/getRandomCoords';
+import { dynamoClient } from '../../singletons/dynamoClient';
+import { UserResponse, Username, TrackerStatus, User } from '../../protoDefinitions/tracker';
 
 /**
  * Creates a new user in the DynamoDB database.
@@ -14,6 +14,8 @@ import { UserResponse, Username, TrackerStatus, User } from '../protoDefinitions
  * @param callback grpc callback to send the response.
  */
 export async function takeTrip(call: grpc.ServerUnaryCall<Username, UserResponse>, callback: grpc.sendUnaryData<UserResponse>) {
+  const logger: Logger = Logger.get();
+
   const { name } = call.request;
   let foundUser: boolean = false;
   const user: User = {
@@ -54,7 +56,7 @@ export async function takeTrip(call: grpc.ServerUnaryCall<Username, UserResponse
   // Create a new trip for the user if they were found
   if (foundUser) {
     // Randomly generate a new trip for the user
-    const pathLength = Math.floor(Math.random() * (pathLimits.maxLength - pathLimits.minLength) + pathLimits.minLength);
+    const pathLength = Math.floor(Math.random() * (config.pathLimits!.maxLength - config.pathLimits!.minLength) + config.pathLimits!.minLength);
     const newTrip: Location[] = [];
 
     // Generate random path based off the user's current location and the path length
