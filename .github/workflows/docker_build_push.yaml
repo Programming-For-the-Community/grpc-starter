@@ -74,6 +74,9 @@ jobs:
           # Extract registry URL from full ECR URI (everything before the last /)
           ECR_REGISTRY=${URI%/*}
 
+          echo "Image Tag: $TAG"
+          echo "Image Version: $VERSION"
+
           # Build the Docker image
           docker build -t ${{ secrets.ECR_URI }}:$TAG_$VERSION \
             -f ${{ inputs.dockerfile_path }} \
