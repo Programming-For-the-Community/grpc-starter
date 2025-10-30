@@ -47,6 +47,7 @@ jobs:
     name: Build Server
     needs: aws-auth
     uses: ./.github/workflows/docker_build_push.yaml
+    secrets: inherit
     with:
       app_name: 'app1'
       dockerfile_path: './Source/server/Dockerfile'
