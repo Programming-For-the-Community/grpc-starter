@@ -1,59 +1,77 @@
-# .github/workflows/docker-build.yml
-name: Build & Push Docker Image
+name: Build and Push Docker Image to ECR
 
 on:
   workflow_call:
     inputs:
-      build_context:
-        description: "Build context for Docker"
+      app_name:
+        description: 'Name of the application'
         required: true
         type: string
       dockerfile_path:
-        description: "Path to Dockerfile"
-        required: true
+        description: 'Path to the Dockerfile'
+        required: false
         type: string
-      repo_name:
-        description: "ECR repository name"
-        required: true
+        default: './Dockerfile'
+      docker_context:
+        description: 'Docker build context path'
+        required: false
         type: string
+        default: '.'
       image_tag:
-        description: "Image tag to use"
-        required: true
+        description: 'Docker image tag'
+        required: false
         type: string
-    secrets:
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
-      AWS_REGION:
-        required: true
+        default: 'latest'
+      image_version:
+        description: 'Version of the image'
+        required: false
+        type: string
+        default: '0.0.0'
+    outputs:
+      image_uri:
+        description: 'Full URI of the pushed image'
+        value: ${{ jobs.build-push.outputs.image_uri }}
+
+# Inherit AWS credentials from parent workflow
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  buildPush:
+  build-push:
     runs-on: ubuntu-latest
+    outputs:
+      image_uri: ${{ steps.build-image.outputs.image }}
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
       - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Docker image
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_URI }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
+          VERSION: ${{ inputs.image_version }}
         run: |
-          IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ inputs.image_name }}:${{ inputs.image_tag }}"
-          docker build -t "$IMAGE_URI" ${{ inputs.dockerfile_path }}
+          # Build the Docker image
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG:$VERSION \
+            -f ${{ inputs.dockerfile_path }} \
+            ${{ inputs.docker_context }}
+          
+          # Push both tags
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG:$VERSION
+          
+          # Output the image URI
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG:$VERSOIN" >> $GITHUB_OUTPUT
+          echo "Built and pushed: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG:$VERSION"
 
-      - name: Push Docker image
+      - name: Image scan results
         run: |
-          IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ inputs.image_name }}:${{ inputs.image_tag }}"
-          docker push "$IMAGE_URI"
-
-      - name: Output image URI
-        run: echo "Image pushed to $IMAGE_URI"
+          echo "Image successfully pushed to ECR"
+          echo "Image URI: ${{ steps.build-image.outputs.image }}"

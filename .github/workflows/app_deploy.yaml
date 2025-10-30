@@ -1,0 +1,62 @@
+name: Deploy Pipeline - Build Apps and Terraform
+
+on:
+  push:
+    branches:
+      - main
+      - "dev*"
+  pull_request:
+    branches:
+      - main
+      - "dev*"
+  workflow_dispatch:
+    inputs:
+      manual_run:
+        description: 'Manual Run'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  AWS_REGION: us-east-1
+
+# Enable OIDC token for AWS authentication
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  # Authenticate with AWS once at the parent level
+  aws-auth:
+    name: Configure AWS Credentials
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials from OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_SVC_ACCT_ARN }}
+          aws-region: ${{ env.AWS_RESOURCE_REGION }}
+          role-session-name: GitHubActions-${{ github.run_id }}
+
+      - name: Verify AWS Identity
+        run: |
+          aws sts get-caller-identity
+          echo "Successfully authenticated with AWS"
+
+  build-server:
+    name: Build Server
+    needs: aws-auth
+    uses: ./.github/workflows/docker_build_push.yaml
+    with:
+      app_name: 'app1'
+      dockerfile_path: './Source/server/Dockerfile'
+      docker_context: './Source'
+      image_tag: 'nodejs-grpc-server'
+      image_version: '0.0.1'
+
+  terraform-deploy:
+    name: Deploy Terraform Infrastructure
+    needs: [aws-auth, build-server]
+    uses: ./.github/workflows/tf_install.yaml
+    with:
+      server_image_uri: ${{ needs.build-server.outputs.image_uri }}

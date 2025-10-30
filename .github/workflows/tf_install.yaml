@@ -11,6 +11,13 @@ on:
         required: false
         default: true
         type: boolean
+  
+  workflow_call:
+    inputs:
+      server_image_uri:
+        description: 'URI of the server Docker image'
+        required: true
+        type: string
 
 permissions:
   id-token: write
