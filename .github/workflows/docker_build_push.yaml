@@ -67,18 +67,14 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
-          TAG: ${{ inputs.image_tag }}
-          VERSION: ${{ inputs.image_version }}
+          IMAGE_TAG: ${{ inputs.image_tag }}_${{ inputs.image_version }}
           URI: ${{ secrets.ECR_URI }}
         run: |
           # Extract registry URL from full ECR URI (everything before the last /)
           ECR_REGISTRY=${URI%/*}
 
-          echo "Image Tag: $TAG"
-          echo "Image Version: $VERSION"
-
           # Build the Docker image
-          docker build -t ${{ secrets.ECR_URI }}:$TAG_$VERSION \
+          docker build -t ${{ secrets.ECR_URI }}:$IMAGE_TAG \
             -f ${{ inputs.dockerfile_path }} \
             ${{ inputs.docker_context }}
           
@@ -86,11 +82,11 @@ jobs:
           aws ecr get-login-password --region ${{ vars.AWS_RESOURCE_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
           
           # Push both tags
-          docker push ${{ secrets.ECR_URI }}:$TAG_$VERSION
+          docker push ${{ secrets.ECR_URI }}:$IMAGE_TAG
           
           # Output the image URI
-          echo "image=${{ secrets.ECR_URI }}:$TAG_$VERSION" >> $GITHUB_OUTPUT
-          echo "Built and pushed: ${{ secrets.ECR_URI }}:$TAG_$VERSION"
+          echo "image=${{ secrets.ECR_URI }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "Built and pushed: ${{ secrets.ECR_URI }}:$IMAGE_TAG"
 
       - name: Image scan results
         run: |

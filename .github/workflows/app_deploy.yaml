@@ -54,7 +54,8 @@ jobs:
 
   terraform-deploy:
     name: Deploy Terraform Infrastructure
-    needs: [aws-auth, build-server]
+    needs: [build-server]
     uses: ./.github/workflows/tf_install.yaml
+    secrets: inherit
     with:
       server_image_uri: ${{ needs.build-server.outputs.image_uri }}
