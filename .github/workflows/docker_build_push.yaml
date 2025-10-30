@@ -69,9 +69,10 @@ jobs:
         env:
           TAG: ${{ inputs.image_tag }}
           VERSION: ${{ inputs.image_version }}
+          URI: ${{ secrets.ECR_URI }}
         run: |
           # Extract registry URL from full ECR URI (everything before the last /)
-          ECR_REGISTRY=${${{ secrets.ECR_URI }}%/*}
+          ECR_REGISTRY=${URI%/*}
 
           # Build the Docker image
           docker build -t ${{ secrets.ECR_URI }}:$TAG_$VERSION \
