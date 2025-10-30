@@ -80,7 +80,7 @@ jobs:
             ${{ inputs.docker_context }}
           
           # Login to ECR registry
-          aws ecr get-login-password --region ${{ env.AWS_RESOURCE_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
+          aws ecr get-login-password --region ${{ vars.AWS_RESOURCE_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
           
           # Push both tags
           docker push ${{ secrets.ECR_URI }}:$TAG_$VERSION
