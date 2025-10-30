@@ -3,10 +3,6 @@ name: Build and Push Docker Image to ECR
 on:
   workflow_call:
     inputs:
-      app_name:
-        description: 'Name of the application'
-        required: true
-        type: string
       dockerfile_path:
         description: 'Path to the Dockerfile'
         required: false

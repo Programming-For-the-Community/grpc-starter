@@ -22,6 +22,9 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  SERVER_VERSION: '0.0.1'
+
 jobs:
   # Authenticate with AWS once at the parent level
   aws-auth:
@@ -46,11 +49,10 @@ jobs:
     uses: ./.github/workflows/docker_build_push.yaml
     secrets: inherit
     with:
-      app_name: 'app1'
       dockerfile_path: './Source/server/Dockerfile'
       docker_context: './Source'
       image_tag: 'nodejs-grpc-server'
-      image_version: '0.0.1'
+      image_version: ${{ github.env.SERVER_VERSION }}
 
   terraform-deploy:
     name: Deploy Terraform Infrastructure
