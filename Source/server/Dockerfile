@@ -29,7 +29,7 @@ COPY --from=build /app/proto ./proto
 COPY --from=build /app/server/package*.json ./
 
 # UNCOMMENT FOR LOCAL TESTING
-COPY server/.env.docker /runtimeconfig/.env.docker
+# COPY server/.env.docker /runtimeconfig/.env.docker
 
 # Install only production deps
 RUN npm ci --omit=dev
