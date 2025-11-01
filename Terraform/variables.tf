@@ -55,42 +55,42 @@ variable "vpc_id" {
 }
 
 variable "private1_subnet_cidr" {
-  description = "CIDR block for nodejs-starter subnet A"
+  description = "CIDR block for gRPC-starter private subnet 1"
   type        = string
   nullable    = false
   default     = "10.0.2.0/28"
 }
 
 variable "private2_subnet_cidr" {
-  description = "CIDR block for nodejs-starter subnet B"
+  description = "CIDR block for gRPC-starter private subnet 2"
   type        = string
   nullable    = false
   default     = "10.0.2.16/28"
 }
 
 variable "private3_subnet_cidr" {
-  description = "CIDR block for nodejs-starter subnet C"
+  description = "CIDR block for gRPC-starter private subnet 3"
   type        = string
   nullable    = false
   default     = "10.0.2.32/28"
 }
 
 variable "public1_subnet_cidr" {
-  description = "CIDR block for nodejs-starter public subnet 1"
+  description = "CIDR block for gRPC-starter public subnet 1"
   type        = string
   nullable    = false
   default     = "10.0.2.48/28"
 }
 
 variable "public2_subnet_cidr" {
-  description = "CIDR block for nodejs-starter public subnet 2"
+  description = "CIDR block for gRPC-starter public subnet 2"
   type        = string
   nullable    = false
   default     = "10.0.2.64/28"
 }
 
 variable "public3_subnet_cidr" {
-  description = "CIDR block for nodejs-starter public subnet 2"
+  description = "CIDR block for gRPC-starter public subnet 3"
   type        = string
   nullable    = false
   default     = "10.0.2.80/28"
