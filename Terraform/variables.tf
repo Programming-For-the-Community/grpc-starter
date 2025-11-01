@@ -53,3 +53,45 @@ variable "vpc_id" {
   nullable    = false
   default     = "vpc_professorchaos0802"
 }
+
+variable "private1_subnet_cidr" {
+  description = "CIDR block for nodejs-starter subnet A"
+  type        = string
+  nullable    = false
+  default     = "10.0.2.0/28"
+}
+
+variable "private2_subnet_cidr" {
+  description = "CIDR block for nodejs-starter subnet B"
+  type        = string
+  nullable    = false
+  default     = "10.0.2.16/28"
+}
+
+variable "private3_subnet_cidr" {
+  description = "CIDR block for nodejs-starter subnet C"
+  type        = string
+  nullable    = false
+  default     = "10.0.2.32/28"
+}
+
+variable "public1_subnet_cidr" {
+  description = "CIDR block for nodejs-starter public subnet 1"
+  type        = string
+  nullable    = false
+  default     = "10.0.2.48/28"
+}
+
+variable "public2_subnet_cidr" {
+  description = "CIDR block for nodejs-starter public subnet 2"
+  type        = string
+  nullable    = false
+  default     = "10.0.2.64/28"
+}
+
+variable "public3_subnet_cidr" {
+  description = "CIDR block for nodejs-starter public subnet 2"
+  type        = string
+  nullable    = false
+  default     = "10.0.2.80/28"
+}
