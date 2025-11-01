@@ -14,8 +14,17 @@ resource "aws_route_table" "gRPC_starter_public_rt" {
   }
 }
 
-resource "aws_route_table_association" "gRPC_starter_public_rta" {
-  count          = 3
-  subnet_id      = aws_subnet.gRPC_starter_public[count.index + 1].id
+resource "aws_route_table_association" "gRPC_starter_public1_rta" {
+  subnet_id      = aws_subnet.gRPC_starter_public1.id
+  route_table_id = aws_route_table.gRPC_starter_public_rt.id
+}
+
+resource "aws_route_table_association" "gRPC_starter_public2_rta" {
+  subnet_id      = aws_subnet.gRPC_starter_public2.id
+  route_table_id = aws_route_table.gRPC_starter_public_rt.id
+}
+
+resource "aws_route_table_association" "gRPC_starter_public3_rta" {
+  subnet_id      = aws_subnet.gRPC_starter_public3.id
   route_table_id = aws_route_table.gRPC_starter_public_rt.id
 }
