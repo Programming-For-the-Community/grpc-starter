@@ -26,7 +26,7 @@ resource "aws_subnet" "gRPC_starter_public2" {
 
 resource "aws_subnet" "gRPC_starter_public3" {
   vpc_id                  = var.vpc_id
-  cidr_block              = var.public2_subnet_cidr
+  cidr_block              = var.public3_subnet_cidr
   availability_zone       = "${var.region}c"
   map_public_ip_on_launch = true
   tags = {
