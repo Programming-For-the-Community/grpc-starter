@@ -3,7 +3,7 @@ resource "aws_vpc_endpoint" "dynamodb" {
   service_name = "com.amazonaws.${var.region}.dynamodb"
 
   route_table_ids = [
-    aws_route_table.private.id
+    aws_route_table.gRPC_starter_private_rt.id
   ]
 
   tags = {
