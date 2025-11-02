@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_log_group" "grpc_server_logs" {
-  name              = "/grpc-server"
+  name              = "grpc-server"
   retention_in_days = 14
 
   tags = {

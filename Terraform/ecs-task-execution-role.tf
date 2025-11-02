@@ -129,9 +129,14 @@ resource "aws_iam_role_policy" "ecs_task_combined_policy" {
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents",
-          "logs:DescribeLogStreams"
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams",
+          "logs:GetLogEvents"
         ]
-        Resource = aws_cloudwatch_log_group.grpc_server_logs.arn
+        Resource = [
+          "arn:aws:logs:${var.region}:${var.account_id}:log-group:/ecs/${aws_cloudwatch_log_group.grpc_server_logs.name}/*",
+          "arn:aws:logs:${var.region}:${var.account_id}:log-group:/ecs/${aws_cloudwatch_log_group.grpc_server_logs.name}:*"
+        ]
       }
     ]
   })
