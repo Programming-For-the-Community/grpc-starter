@@ -95,3 +95,24 @@ variable "public3_subnet_cidr" {
   nullable    = false
   default     = "10.0.2.80/28"
 }
+
+variable "server_version" {
+  description = "Version of the gRPC server"
+  type        = string
+  nullable    = false
+  default     = "1.0.0"
+}
+
+variable "server_image" {
+  description = "Docker image for gRPC server"
+  type        = string
+  nullable    = false
+  default     = "grpc-starter-server:latest"
+}
+
+variable "domain_name" {
+  description = "Domain name for DNS"
+  type        = string
+  nullable    = false
+  default     = "example.com"
+}

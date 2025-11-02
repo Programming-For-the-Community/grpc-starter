@@ -52,3 +52,4 @@ jobs:
     secrets: inherit
     with:
       server_image_uri: ${{ needs.build-server.outputs.image_uri }}
+      server_version: ${{ needs.set-env.outputs.server_version }}

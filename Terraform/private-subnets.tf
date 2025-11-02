@@ -27,7 +27,7 @@ resource "aws_subnet" "gRPC_starter_private3" {
   cidr_block        = var.private3_subnet_cidr
   availability_zone = "${var.region}c"
   tags = {
-    Name        = "gRPC Starter Private Subnet East 2"
+    Name        = "gRPC Starter Private Subnet East 2C"
     Project     = var.project
     Owner       = var.owner
     Description = "Private subnet in ${var.region}c for gRPC starter"

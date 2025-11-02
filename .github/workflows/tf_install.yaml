@@ -18,6 +18,10 @@ on:
         description: 'URI of the server Docker image'
         required: true
         type: string
+      server_version:
+        description: 'Version of the server'
+        required: true
+        type: string
 
 permissions:
   id-token: write
@@ -35,6 +39,10 @@ env:
   TF_VAR_public1_subnet_cidr: ${{ vars.PUBLIC1_SUBNET_CIDR }}
   TF_VAR_public2_subnet_cidr: ${{ vars.PUBLIC2_SUBNET_CIDR }}
   TF_VAR_public3_subnet_cidr: ${{ vars.PUBLIC3_SUBNET_CIDR }}
+  TF_VAR_ecr_repository: ${{ vars.ECR_REPOSITORY }}
+  TF_VAR_server_image: ${{ inputs.server_image_uri}}
+  TF_VAR_server_version: ${{ inputs.server_version }}
+  TF_VAR_domain_name: ${{ secrets.DOMAIN_NAME }}
 
 jobs:
   terraform:

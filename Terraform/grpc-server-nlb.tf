@@ -1,0 +1,58 @@
+resource "aws_lb" "grpc_server_nlb" {
+  name               = "grpc-server-nlb"
+  internal           = true # Internal NLB, not internet-facing
+  load_balancer_type = "network"
+  subnets = [
+    aws_subnet.gRPC_starter_private1.id,
+    aws_subnet.gRPC_starter_private2.id,
+    aws_subnet.gRPC_starter_private3.id
+  ]
+
+  enable_deletion_protection = false
+
+  tags = {
+    Name        = "gRPC Internal Network Load Balancer"
+    Project     = var.project
+    Owner       = var.owner
+    Description = "Internal Network Load Balancer (NLB) for gRPC server"
+  }
+}
+
+resource "aws_lb_target_group" "grpc_server_tg" {
+  name        = "grpc-tg"
+  port        = 50051
+  protocol    = "TCP"
+  target_type = "ip"
+  vpc_id      = var.vpc_id
+
+  health_check {
+    enabled             = true
+    healthy_threshold   = 2
+    unhealthy_threshold = 5
+    timeout             = 10
+    interval            = 15
+    port                = 8080
+    protocol            = "HTTP"
+    path                = "/health"
+  }
+
+  deregistration_delay = 30
+
+  tags = {
+    Name        = "gRPC Target Group"
+    Project     = var.project
+    Owner       = var.owner
+    Description = "Target group for gRPC server"
+  }
+}
+
+resource "aws_lb_listener" "grpc_server_listener" {
+  load_balancer_arn = aws_lb.grpc_server_nlb.arn
+  port              = 50051
+  protocol          = "TCP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.grpc_server_tg.arn
+  }
+}
