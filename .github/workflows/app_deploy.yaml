@@ -49,7 +49,7 @@ jobs:
     needs: build-server
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Image URI is ${{ needs.build-server.outputs.image_uri }}"
+      - run: echo "Image URI is ${{ needs.build-server.outputs.image_tag }}"
 
   terraform-deploy:
     name: Deploy Terraform Infrastructure
@@ -57,5 +57,5 @@ jobs:
     uses: ./.github/workflows/tf_install.yaml
     secrets: inherit
     with:
-      server_image_uri: ${{ needs.build-server.outputs.image_uri }}
+      server_image_tag: ${{ needs.build-server.outputs.image_tag }}
       server_version: ${{ needs.set-env.outputs.server_version }}
