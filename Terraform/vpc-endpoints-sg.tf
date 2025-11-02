@@ -16,9 +16,17 @@ resource "aws_security_group" "grpc_starter_vpc_endpoints_sg" {
     ]
   }
 
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = {
-    Name    = "VPC Endpoints Security Group"
-    Project = var.project
-    Owner   = var.owner
+    Name        = "VPC Endpoints Security Group"
+    Project     = var.project
+    Owner       = var.owner
+    Description = "Security group for VPC endpoints"
   }
 }
