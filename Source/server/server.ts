@@ -59,6 +59,12 @@ async function initializeServer() {
 
   logger.setFormat(loggerConfig);
 
+  logger.info('Application Configuration:');
+
+  (Object.keys(config.appConfig) as Array<keyof AppConfig>).forEach((key) => {
+    logger.info(`${key}: ${config.appConfig![key]}`);
+  });
+
   logger.info('Starting gRPC server initialization');
 
   // Load proto file

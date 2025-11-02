@@ -40,7 +40,7 @@ resource "aws_iam_role_policy" "ecs_task_execution_secrets_policy" {
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = "arn:aws:secretsmanager:${var.region}:${var.account_id}:secret:*"
+        Resource = "${var.server_config_arn}:*"
       },
       {
         Effect = "Allow"
@@ -106,7 +106,7 @@ resource "aws_iam_role_policy" "ecs_task_combined_policy" {
           "secretsmanager:DescribeSecret",
           "secretsmanager:ListSecrets"
         ]
-        Resource = "arn:aws:secretsmanager:${var.region}:${var.account_id}:secret:*"
+        Resource = "${var.server_config_arn}:*"
       },
       {
         Sid    = "KMSDecrypt"
@@ -131,7 +131,7 @@ resource "aws_iam_role_policy" "ecs_task_combined_policy" {
           "logs:PutLogEvents",
           "logs:DescribeLogStreams"
         ]
-        Resource = aws_cloudwatch_log_group.grpc_server_logs.arn
+        Resource = "${aws_cloudwatch_log_group.grpc_server_logs.arn}:*"
       }
     ]
   })

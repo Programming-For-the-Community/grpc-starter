@@ -116,3 +116,17 @@ variable "domain_name" {
   nullable    = false
   default     = "example.com"
 }
+
+variable "server_config_arn" {
+  description = "ARN of the Secrets Manager secret for gRPC server configuration"
+  type        = string
+  nullable    = false
+  default     = "arn:aws:secretsmanager:us-east-2:1234567890:secret:grpc-starter-server-config-ABC123"
+}
+
+variable "server_secret" {
+  description = "Name of the Secrets Manager secret for gRPC server configuration"
+  type        = string
+  nullable    = false
+  default     = "grpc-starter-server-config"
+}

@@ -54,6 +54,14 @@ resource "aws_ecs_task_definition" "grpc_task" {
         {
           name  = "APP_VERSION"
           value = var.server_version
+        },
+        {
+          name  = "AWS_SECRET_NAME"
+          value = var.server_secret
+        },
+        {
+          name  = "NODE_ENV"
+          value = "AWS"
         }
       ]
 
