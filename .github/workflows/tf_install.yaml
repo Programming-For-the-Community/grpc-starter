@@ -44,7 +44,7 @@ env:
   TF_VAR_server_version: ${{ inputs.server_version }}
   TF_VAR_domain_name: ${{ secrets.DOMAIN_NAME }}
   TF_VAR_server_config_arn: ${{ secrets.NODEJS_SERVER_SECRET_ARN }}
-  TF_VAR_server_secret: ${{ var.NODEJS_SERVER_SECRET_NAME }}
+  TF_VAR_server_secret: ${{ vars.NODEJS_SERVER_SECRET_NAME }}
 
 jobs:
   terraform:
