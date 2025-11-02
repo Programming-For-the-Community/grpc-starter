@@ -45,9 +45,15 @@ jobs:
       image_tag: 'nodejs-grpc-server'
       image_version: ${{ needs.set-env.outputs.server_version }}
 
+  debug-check:
+    needs: build-server
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Image URI is ${{ needs.build-server.outputs.image_uri }}"
+
   terraform-deploy:
     name: Deploy Terraform Infrastructure
-    needs: [build-server]
+    needs: [set-env, build-server]
     uses: ./.github/workflows/tf_install.yaml
     secrets: inherit
     with:

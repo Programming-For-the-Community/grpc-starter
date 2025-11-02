@@ -14,7 +14,7 @@ resource "aws_lb" "grpc_server_nlb" {
     Name        = "gRPC Internal Network Load Balancer"
     Project     = var.project
     Owner       = var.owner
-    Description = "Internal Network Load Balancer (NLB) for gRPC server"
+    Description = "Internal Network Load Balancer [NLB] for gRPC server"
   }
 }
 
