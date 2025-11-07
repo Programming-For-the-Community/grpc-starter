@@ -168,7 +168,7 @@ async function initializeServer() {
   const healthServer = healthConfig.secure ? https.createServer(httpsOptions, app) : http.createServer(app);
 
   healthServer.listen(parseInt(healthConfig.port), healthConfig.host, () => {
-    logger.info(`🌐 Health check HTTP server listening on ${healthConfig.secure ? 'https' : 'http'}://${healthConfig.host}:${healthConfig.port}/health`);
+    logger.info(`Health check HTTP server listening on ${healthConfig.secure ? 'https' : 'http'}://${healthConfig.host}:${healthConfig.port}/health`);
   });
 }
 
