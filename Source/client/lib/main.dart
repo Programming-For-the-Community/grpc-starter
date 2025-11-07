@@ -12,6 +12,16 @@ void main() async {
 
   await Logger.init(); // Initialize the logger with app info
 
+  Logger().info('============= Application Configuration =============');
+
+  AppConfig.toMap().forEach((key, value) {
+    Logger().info('${key.toUpperCase()}: $value');
+  });
+
+  Logger().info('================================================');
+
+  Map<String, dynamic> configAsMap = AppConfig.toMap();
+
   await GrpcClient.init(); // Initialize gRPC client
 
   Logger().info('Application started');

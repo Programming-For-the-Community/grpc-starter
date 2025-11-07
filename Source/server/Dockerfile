@@ -9,6 +9,10 @@ COPY proto ./proto
 
 # Install dependencies
 WORKDIR /app/server
+
+# Make sure that a package-lock.json exists
+RUN npm install
+
 RUN npm ci
 RUN npm run build
 

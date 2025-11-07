@@ -1,0 +1,27 @@
+{
+  "name": "grpc-node-client",
+  "version": "1.0.0",
+  "description": "NodeJS Server to host the Flutter gRPC client",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "gRPC",
+    "NodeJS",
+    "Typescript",
+    "server"
+  ],
+  "author": "Charlie Hahm",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.4",
+    "@types/node": "^22.14.1"
+  }
+}
