@@ -7,8 +7,8 @@ resource "aws_security_group" "grpc_starter_client_alb_sg" {
   # Allow HTTP from internet
   ingress {
     description = "HTTP from internet"
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = [var.all_traffic]
   }
@@ -16,8 +16,8 @@ resource "aws_security_group" "grpc_starter_client_alb_sg" {
   # Allow HTTPS from internet
   ingress {
     description = "HTTPS from internet"
-    from_port   = 8443
-    to_port     = 8443
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = [var.all_traffic]
   }

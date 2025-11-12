@@ -106,7 +106,7 @@ resource "aws_iam_role_policy" "ecs_task_combined_policy" {
           "secretsmanager:DescribeSecret",
           "secretsmanager:ListSecrets"
         ]
-        Resource = var.server_config_arn
+        Resource = [ var.server_config_arn, var.client_config_arn ]
       },
       {
         Sid    = "KMSDecrypt"

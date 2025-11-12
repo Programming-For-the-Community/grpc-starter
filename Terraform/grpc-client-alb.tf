@@ -54,14 +54,14 @@ resource "aws_lb_target_group" "grpc_starter_client_tg" {
 # HTTP listener (redirect to HTTPS)
 resource "aws_lb_listener" "grpc_starter_client_listener_http" {
   load_balancer_arn = aws_lb.grpc_starter_client_alb.arn
-  port              = 8080
+  port              = 80
   protocol          = "HTTP"
 
   default_action {
     type = "redirect"
 
     redirect {
-      port        = "8443"
+      port        = "443"
       protocol    = "HTTPS"
       status_code = "HTTP_301"
     }
@@ -71,7 +71,7 @@ resource "aws_lb_listener" "grpc_starter_client_listener_http" {
 # HTTPS listener
 resource "aws_lb_listener" "grpc_starter_client_listener_https" {
   load_balancer_arn = aws_lb.grpc_starter_client_alb.arn
-  port              = 8443
+  port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
   certificate_arn   = aws_acm_certificate.grpc_starter_client_cert.arn

@@ -70,7 +70,7 @@ resource "aws_ecs_task_definition" "grpc_server_task" {
         options = {
           "awslogs-group"         = aws_cloudwatch_log_group.grpc_starter_logs.name
           "awslogs-region"        = var.region
-          "awslogs-stream-prefix" = "ecs/grpc-server"
+          "awslogs-stream-prefix" = "/ecs"
         }
       }
 
