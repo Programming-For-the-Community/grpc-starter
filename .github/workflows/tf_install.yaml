@@ -74,6 +74,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Echo vars
+      run: |
+        echo "client_image: $TF_VAR_client_image"
+
     - name: Configure AWS Credentials (via OIDC)
       uses: aws-actions/configure-aws-credentials@v4
       with:
