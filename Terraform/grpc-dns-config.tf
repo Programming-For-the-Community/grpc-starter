@@ -55,10 +55,6 @@ resource "aws_route53_zone" "private" {
 resource "aws_route53_zone" "grps_starter_public" {
   name = "grpc-starter.${var.domain_name}"
 
-  vpc {
-    vpc_id = var.vpc_id
-  }
-
   tags = {
     Name    = "Public Hosted Zone for GRPC Starter Client"
     Project = var.project

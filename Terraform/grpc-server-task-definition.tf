@@ -83,7 +83,8 @@ resource "aws_ecs_task_definition" "grpc_server_task" {
       }
     }
   ])
-
+  
+  depends_on = [ aws_dynamodb_table.grpc_users ] # Need DynamoDB Table to be up for This service to be able to to run
   tags = {
     Name        = "gRPC Server Task Definition"
     Project     = var.project
