@@ -110,6 +110,20 @@ variable "server_image" {
   default     = "grpc-starter-server:latest"
 }
 
+variable "client_version" {
+  description = "Version of the gRPC server"
+  type        = string
+  nullable    = false
+  default     = "1.0.0"
+}
+
+variable "client_image" {
+  description = "Docker image for gRPC server"
+  type        = string
+  nullable    = false
+  default     = "grpc-starter-client:latest"
+}
+
 variable "domain_name" {
   description = "Domain name for DNS"
   type        = string
@@ -129,4 +143,18 @@ variable "server_secret" {
   type        = string
   nullable    = false
   default     = "grpc-starter-server-config"
+}
+
+variable "client_config_arn" {
+  description = "ARN of the Secrets Manager secret for gRPC client configuration"
+  type        = string
+  nullable    = false
+  default     = "arn:aws:secretsmanager:us-east-2:1234567890:secret:grpc-starter-client-config-ABC123"
+}
+
+variable "client_secret" {
+  description = "Name of the Secrets Manager secret for gRPC client configuration"
+  type        = string
+  nullable    = false
+  default     = "grpc-starter-client-config"
 }

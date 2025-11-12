@@ -52,15 +52,41 @@ resource "aws_route53_zone" "private" {
   }
 }
 
+resource "aws_route53_zone" "grps_starter_public" {
+  name = "grpc-starter.${var.domain_name}"
+
+  vpc {
+    vpc_id = var.vpc_id
+  }
+
+  tags = {
+    Name    = "Public Hosted Zone for GRPC Starter Client"
+    Project = var.project
+    Owner   = var.owner
+  }
+}
+
 # Route53 record for internal gRPC server
 resource "aws_route53_record" "grpc_server" {
   zone_id = aws_route53_zone.private.zone_id
-  name    = "grpc.server.internal.${var.domain_name}"
+  name    = "grpc.server.${aws_route53_zone.private.name}"
   type    = "A"
 
   alias {
     name                   = aws_lb.grpc_server_nlb.dns_name
     zone_id                = aws_lb.grpc_server_nlb.zone_id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "grpc_client" {
+  zone_id = aws_route53_zone.grps_starter_public.id
+  name    = "client.${aws_route53_zone.grps_starter_public.name}"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.grpc_server_nlb.dns_name
+    zone_id                = aws_lb.grpc_starter_client_alb.zone_id
     evaluate_target_health = true
   }
 }

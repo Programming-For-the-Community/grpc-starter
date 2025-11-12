@@ -1,7 +1,7 @@
 resource "aws_ecs_service" "grpc_server_service" {
   name            = "grpc-server-service"
   cluster         = aws_ecs_cluster.grpc_starter_ecs_cluster.id
-  task_definition = aws_ecs_task_definition.grpc_task.arn
+  task_definition = aws_ecs_task_definition.grpc_server_task.arn
   desired_count   = 2 # Run 2 tasks for high availability
   launch_type     = "FARGATE"
 
@@ -33,6 +33,6 @@ resource "aws_ecs_service" "grpc_server_service" {
     Name        = "gRPC Server ECS Service"
     Project     = var.project
     Owner       = var.owner
-    Description = "ECS Service for gRPC server"
+    Description = "ECS Server Service for gRPC server"
   }
 }

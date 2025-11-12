@@ -38,6 +38,7 @@ class SecretsManager {
         // Load in specific env values not in secrets manager
         secrets['GRPC_HOST'] = const String.fromEnvironment('GRPC_HOST', defaultValue: 'localhost');
         secrets['APP_VERSION'] = const String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0');
+        secrets['SERVER_URL'] = const String.fromEnvironment('SERVER_URL', defaultValue: 'localhost');
 
         return secrets.map((key, value) => MapEntry(key, value.toString()));
       }
