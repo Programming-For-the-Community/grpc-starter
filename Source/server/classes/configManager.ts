@@ -66,14 +66,18 @@ export class ConfigManager {
     }
 
     // Merge with existing environment variables (env vars take precedence)
-    const mergedConfig: AppConfig = {
-      ...config,
-      ...(process.env.GRPC_DYNAMODB_ROLE_ARN && { GRPC_DYNAMODB_ROLE_ARN: process.env.GRPC_DYNAMODB_ROLE_ARN }),
-      ...(process.env.TABLE_NAME && { TABLE_NAME: process.env.TABLE_NAME }),
-      ...(process.env.TABLE_STREAM_ARN && { TABLE_STREAM_ARN: process.env.TABLE_STREAM_ARN }),
-    };
+    config.GRPC_DYNAMODB_ROLE_ARN = process.env.GRPC_DYNAMODB_ROLE_ARN!!;
+    config.TABLE_NAME = process.env.TABLE_NAME!!;
+    config.TABLE_STREAM_ARN = process.env.TABLE_STREAM_ARN!;
 
-    this.config = mergedConfig;
+    // const mergedConfig: AppConfig = {
+    //   ...config,
+    //   ...(process.env.GRPC_DYNAMODB_ROLE_ARN && { GRPC_DYNAMODB_ROLE_ARN: process.env.GRPC_DYNAMODB_ROLE_ARN }),
+    //   ...(process.env.TABLE_NAME && { TABLE_NAME: process.env.TABLE_NAME }),
+    //   ...(process.env.TABLE_STREAM_ARN && { TABLE_STREAM_ARN: process.env.TABLE_STREAM_ARN }),
+    // };
+
+    // this.config = mergedConfig;
     this.initialized = true;
 
     return config;

@@ -1,5 +1,3 @@
-import { ServingStatus } from '../protoFunctions/health/healthService';
-
 /**
  * App configuration loaded from environment variables or other sources.
  */

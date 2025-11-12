@@ -82,6 +82,6 @@ resource "aws_lb_listener" "grpc_starter_client_listener_https" {
   }
 
   depends_on = [
-    aws_acm_certificate_validation.grpc_starter_client_cert  # Depends on SSL Cert
+    aws_acm_certificate_validation.cert # Depends on SSL Cert
   ]
 }
