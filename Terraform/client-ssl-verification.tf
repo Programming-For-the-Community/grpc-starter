@@ -1,7 +1,7 @@
 resource "aws_route53_record" "cert_validation" {
   name    = tolist(aws_acm_certificate.grpc_starter_client_cert.domain_validation_options)[0].resource_record_name
   type    = tolist(aws_acm_certificate.grpc_starter_client_cert.domain_validation_options)[0].resource_record_type
-  zone_id = aws_route53_zone.grps_starter_public.id
+  zone_id = aws_route53_zone.grpc_starter_public.id
   records = [tolist(aws_acm_certificate.grpc_starter_client_cert.domain_validation_options)[0].resource_record_value]
   ttl     = 60
 

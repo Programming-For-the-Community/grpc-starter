@@ -52,7 +52,7 @@ resource "aws_route53_zone" "private" {
   }
 }
 
-resource "aws_route53_zone" "grps_starter_public" {
+resource "aws_route53_zone" "grpc_starter_public" {
   name = "grpc-starter.${var.domain_name}"
 
   tags = {
@@ -76,12 +76,12 @@ resource "aws_route53_record" "grpc_server" {
 }
 
 resource "aws_route53_record" "grpc_client" {
-  zone_id = aws_route53_zone.grps_starter_public.id
-  name    = "client.${aws_route53_zone.grps_starter_public.name}"
+  zone_id = aws_route53_zone.grpc_starter_public.id
+  name    = "client.${aws_route53_zone.grpc_starter_public.name}"
   type    = "A"
 
   alias {
-    name                   = aws_lb.grpc_server_nlb.dns_name
+    name                   = aws_lb.grpc_starter_client_alb.dns_name
     zone_id                = aws_lb.grpc_starter_client_alb.zone_id
     evaluate_target_health = true
   }
