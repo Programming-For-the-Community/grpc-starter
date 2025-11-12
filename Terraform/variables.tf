@@ -158,3 +158,9 @@ variable "client_secret" {
   nullable    = false
   default     = "grpc-starter-client-config"
 }
+
+variable "domain_hosted_zone_id" {
+  description = "ID of the Hosted Zone for my domain"
+  type        = string
+  nullable    = false
+}

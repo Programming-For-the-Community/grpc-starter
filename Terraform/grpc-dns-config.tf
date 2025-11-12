@@ -86,3 +86,12 @@ resource "aws_route53_record" "grpc_client" {
     evaluate_target_health = true
   }
 }
+
+# NS delegation for grpc-starter subdomain
+resource "aws_route53_record" "grpc_starter_delegation" {
+  zone_id = var.domain_hosted_zone_id
+  name    = "grpc-starter.${var.domain_name}"
+  type    = "NS"
+  ttl     = "172800" # 48 Hours
+  records = aws_route53_zone.grpc_starter_public.name_servers
+}

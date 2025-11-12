@@ -134,8 +134,8 @@ resource "aws_iam_role_policy" "ecs_task_combined_policy" {
           "logs:GetLogEvents"
         ]
         Resource = [
-          "arn:aws:logs:${var.region}:${var.account_id}:log-group:/ecs/${aws_cloudwatch_log_group.grpc_starter_logs.name}/*",
-          "arn:aws:logs:${var.region}:${var.account_id}:log-group:/ecs/${aws_cloudwatch_log_group.grpc_starter_logs.name}:*"
+          "arn:aws:logs:${var.region}:${var.account_id}:log-group:${aws_cloudwatch_log_group.grpc_starter_logs.name}/*",
+          "arn:aws:logs:${var.region}:${var.account_id}:log-group:${aws_cloudwatch_log_group.grpc_starter_logs.name}:*"
         ]
       }
     ]
