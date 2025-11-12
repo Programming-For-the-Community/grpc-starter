@@ -80,4 +80,8 @@ resource "aws_lb_listener" "grpc_starter_client_listener_https" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.grpc_starter_client_tg.arn
   }
+
+  depends_on = [
+    aws_acm_certificate_validation.grpc_starter_client_cert  # Depends on SSL Cert
+  ]
 }
