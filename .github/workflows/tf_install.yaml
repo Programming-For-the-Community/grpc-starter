@@ -55,7 +55,7 @@ env:
   TF_VAR_client_config_arn: ${{ secrets.FLUTTER_CLIENT_SECRET_ARN }}
   TF_VAR_server_secret: ${{ vars.NODEJS_SERVER_SECRET_NAME }}
   TF_VAR_client_secret: ${{ vars.FLUTTER_CLIENT_SECRET_NAME }}
-  TF_VAR_domain_hosted_zone: ${{ secrets.DOMAIN_HOSTED_ZONE_ID }}
+  TF_VAR_domain_hosted_zone_id: ${{ secrets.DOMAIN_HOSTED_ZONE_ID }}
 
 jobs:
   terraform:
