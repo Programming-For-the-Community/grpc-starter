@@ -14,8 +14,11 @@ data "aws_iam_policy_document" "grpc_dynamodb_assume_role_policy" {
   statement {
     effect = "Allow"
     principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::${var.account_id}:user/charlie_hahm"]
+      type = "AWS"
+      identifiers = [
+        "arn:aws:iam::${var.account_id}:user/charlie_hahm",
+        aws_iam_role.ecx_task_execution_role.arn
+      ]
     }
     actions = ["sts:AssumeRole"]
   }
