@@ -67,6 +67,14 @@ resource "aws_ecs_task_definition" "grpc_client_task" {
           "awslogs-stream-prefix" = "/ecs"
         }
       }
+
+      healthCheck = {
+        command     = ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/8080' || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 60
+      }
     }
   ])
 

@@ -76,7 +76,7 @@ resource "aws_lb_listener" "grpc_server_listener_grpc" {
 
 resource "aws_lb_listener" "grpc_server_listener_http" {
   load_balancer_arn = aws_lb.grpc_server_nlb.arn
-  port              = 8080
+  port              = 80
   protocol          = "TCP"
 
   default_action {
