@@ -36,9 +36,9 @@ class SecretsManager {
         final Map<String, dynamic> secrets = jsonDecode(response.secretString!);
 
         // Load in specific env values not in secrets manager
-        secrets['GRPC_HOST'] = const String.fromEnvironment('GRPC_HOST', defaultValue: 'localhost');
+        secrets['GRPC_HOST'] = const String.fromEnvironment('GRPC_HOST', defaultValue: '0.0.0.0');
         secrets['APP_VERSION'] = const String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0');
-        secrets['SERVER_URL'] = const String.fromEnvironment('SERVER_URL', defaultValue: 'localhost');
+        secrets['SERVER_URL'] = const String.fromEnvironment('SERVER_URL', defaultValue: '0.0.0.0');
 
         return secrets.map((key, value) => MapEntry(key, value.toString()));
       }
