@@ -55,7 +55,7 @@ resource "aws_ecs_task_definition" "grpc_client_task" {
         },
         {
           name  = "SERVER_URL"
-          value = "http://${aws_lb.grpc_starter_client_alb.dns_name}:8080"
+          value = "http://0.0.0.0:8080"
         }
       ]
 
