@@ -68,7 +68,7 @@ COPY --from=node /workspace/node_modules /app/node_modules
 COPY --from=node /workspace/package*.json /app
 
 #COPY Server Definition
-COPY /client/server.js /app
+COPY client/server.js /app
 
 # FOR DEBUGGING PURPOSES ONLY
 # COPY client/.env.dev /app
