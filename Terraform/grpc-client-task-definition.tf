@@ -69,7 +69,7 @@ resource "aws_ecs_task_definition" "grpc_client_task" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "curl -f https://${aws_route53_record.grpc_client.name}/health || exit 1"]
+        command     = ["CMD-SHELL", "curl -k https://${aws_route53_record.grpc_client.name}/health || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3

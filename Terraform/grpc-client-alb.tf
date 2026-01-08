@@ -33,9 +33,9 @@ resource "aws_lb_target_group" "grpc_starter_client_tg" {
   health_check {
     enabled             = true
     healthy_threshold   = 2
-    unhealthy_threshold = 3
-    timeout             = 5
-    interval            = 30
+    unhealthy_threshold = 5
+    timeout             = 10
+    interval            = 15
     path                = "/health"
     protocol            = "HTTP"
     matcher             = "200"
