@@ -55,7 +55,7 @@ resource "aws_ecs_task_definition" "grpc_client_task" {
         },
         {
           name  = "SERVER_URL"
-          value = "http://${aws_route53_record.grpc_client.name}"
+          value = "https://${aws_lb.grpc_starter_client_alb.dns_name}"
         }
       ]
 

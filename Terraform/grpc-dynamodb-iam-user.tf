@@ -17,7 +17,7 @@ data "aws_iam_policy_document" "grpc_dynamodb_assume_role_policy" {
       type = "AWS"
       identifiers = [
         "arn:aws:iam::${var.account_id}:user/charlie_hahm",
-        aws_iam_role.ecs_task_execution_role.arn
+        aws_iam_role.ecs_task_role.arn
       ]
     }
     actions = ["sts:AssumeRole"]
