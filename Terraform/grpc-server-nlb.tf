@@ -1,11 +1,11 @@
 resource "aws_lb" "grpc_server_nlb" {
   name               = "grpc-server-nlb"
-  internal           = true # Internal NLB, not internet-facing
+  internal           = false # External NLB allows client to connect to server on private subnets
   load_balancer_type = "network"
   subnets = [
-    aws_subnet.gRPC_starter_private1.id,
-    aws_subnet.gRPC_starter_private2.id,
-    aws_subnet.gRPC_starter_private3.id
+    aws_subnet.gRPC_starter_public1.id,
+    aws_subnet.gRPC_starter_public2.id,
+    aws_subnet.gRPC_starter_public3.id
   ]
 
   enable_deletion_protection = false
@@ -24,6 +24,16 @@ resource "aws_lb_target_group" "grpc_server_tg_grpc" {
   protocol    = "TCP"
   target_type = "ip"
   vpc_id      = var.vpc_id
+
+  health_check {
+    enabled             = true
+    healthy_threshold   = 2
+    unhealthy_threshold = 5
+    timeout             = 10
+    interval            = 15
+    port                = 50051
+    protocol            = "TCP"
+  }
 
   deregistration_delay = 30
 
@@ -76,7 +86,7 @@ resource "aws_lb_listener" "grpc_server_listener_grpc" {
 
 resource "aws_lb_listener" "grpc_server_listener_http" {
   load_balancer_arn = aws_lb.grpc_server_nlb.arn
-  port              = 80
+  port              = 8080
   protocol          = "TCP"
 
   default_action {

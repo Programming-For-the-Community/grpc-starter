@@ -75,7 +75,7 @@ resource "aws_ecs_task_definition" "grpc_server_task" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/8080' || exit 1"]
+        command     = ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/8080' || exit 1"] # See if port 8080 is open
         interval    = 30
         timeout     = 5
         retries     = 3
@@ -83,7 +83,7 @@ resource "aws_ecs_task_definition" "grpc_server_task" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/50051' || exit 1"]
+        command     = ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/50051' || exit 1"] # Check if gRPC port is open
         interval    = 30
         timeout     = 5
         retries     = 3
