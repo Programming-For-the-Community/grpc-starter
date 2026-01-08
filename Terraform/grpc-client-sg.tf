@@ -27,8 +27,16 @@ resource "aws_security_group" "grpc_starter_client_sg" {
     from_port   = 50051
     to_port     = 50051
     protocol    = "tcp"
-    cidr_blocks = [var.all_traffic]
-    # security_groups = [aws_security_group.grpc_server_sg.id]
+    cidr_blocks = [var.vpc_cidr]
+  }
+
+  # Allow all outbound only to the gRPC server on port 8080
+  egress {
+    description = "Outbound to gRPC server"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
   }
 
   # Allow all outbound traffic (for DynamoDB via VPC endpoint, DNS Resolution, etc)

@@ -18,9 +18,26 @@ resource "aws_lb" "grpc_server_nlb" {
   }
 }
 
-resource "aws_lb_target_group" "grpc_server_tg" {
+resource "aws_lb_target_group" "grpc_server_tg_grpc" {
   name        = "grpc-tg"
   port        = 50051
+  protocol    = "TCP"
+  target_type = "ip"
+  vpc_id      = var.vpc_id
+
+  deregistration_delay = 30
+
+  tags = {
+    Name        = "gRPC Target Group"
+    Project     = var.project
+    Owner       = var.owner
+    Description = "Target group for gRPC server"
+  }
+}
+
+resource "aws_lb_target_group" "grpc_server_tg_http" {
+  name        = "grpc-tg"
+  port        = 8080
   protocol    = "TCP"
   target_type = "ip"
   vpc_id      = var.vpc_id
@@ -42,17 +59,28 @@ resource "aws_lb_target_group" "grpc_server_tg" {
     Name        = "gRPC Target Group"
     Project     = var.project
     Owner       = var.owner
-    Description = "Target group for gRPC server"
+    Description = "Target group for HTTP Health Checks"
   }
 }
 
-resource "aws_lb_listener" "grpc_server_listener" {
+resource "aws_lb_listener" "grpc_server_listener_grpc" {
   load_balancer_arn = aws_lb.grpc_server_nlb.arn
   port              = 50051
   protocol          = "TCP"
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.grpc_server_tg.arn
+    target_group_arn = aws_lb_target_group.grpc_server_tg_grpc.arn
+  }
+}
+
+resource "aws_lb_listener" "grpc_server_listener_http" {
+  load_balancer_arn = aws_lb.grpc_server_nlb.arn
+  port              = 8080
+  protocol          = "TCP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.grpc_server_tg_http.arn
   }
 }

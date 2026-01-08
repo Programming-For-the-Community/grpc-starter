@@ -16,9 +16,15 @@ resource "aws_ecs_service" "grpc_server_service" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.grpc_server_tg.arn
+    target_group_arn = aws_lb_target_group.grpc_server_tg_grpc.arn
     container_name   = "grpc-server"
     container_port   = 50051
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.grpc_server_tg_http.arn
+    container_name   = "grpc-server"
+    container_port   = 8080
   }
 
   service_registries {
@@ -26,7 +32,8 @@ resource "aws_ecs_service" "grpc_server_service" {
   }
 
   depends_on = [
-    aws_lb_listener.grpc_server_listener
+    aws_lb_listener.grpc_server_listener_grpc,
+    aws_lb_listener.grpc_server_listener_http
   ]
 
   tags = {

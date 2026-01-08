@@ -71,7 +71,7 @@ class AppConfig {
     _instance.appName = envConfig['APP_NAME'] ?? 'flutter-grpc-client';
     _instance.appVersion = envConfig['APP_VERSION'] ?? '1.0.0';
     _instance.appEnv = envConfig['APP_ENV'] ?? 'localhost';
-    _instance.serverUrl = envConfig['SERVER_URL'] ?? 'http://localhost:8080';
+    _instance.serverUrl = envConfig['SERVER_URL'] ?? 'http://0.0.0.0:8080';
 
     // UI Settings
     _instance.maxGridSize = double.tryParse(envConfig['MAX_GRID_SIZE'] ?? '10000.0') ?? 10000.0;
@@ -107,7 +107,7 @@ class AppConfig {
     _instance.fontFamily = envConfig['FONT_FAMILY'] ?? 'RobotoMono';
 
     // GRPC Settings
-    _instance.grpcHost = envConfig['GRPC_HOST'] ?? 'localhost';
+    _instance.grpcHost = envConfig['GRPC_HOST'] ?? '0.0.0.0';
     _instance.grpcPort = int.tryParse(envConfig['GRPC_PORT'] ?? '50051') ?? 50051;
     _instance.grpcSecure = envConfig['GRPC_SECURE']?.toLowerCase() == 'true';
   }
