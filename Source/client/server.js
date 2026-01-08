@@ -6,7 +6,7 @@ const https = require('https');
 
 const app = express();
 const PORT = process.env.APP_PORT || 8080;
-const HOST = process.env.APP_HOST || 'localhost';
+const HOST = process.env.APP_HOST || '0.0.0.0';
 const NAME = process.env.APP_NAME || 'flutter-web-client';
 const VERSION = process.env.APP_VERSION || '0.0.1';
 const BUILD_DIR = path.join(__dirname, 'build/web');
