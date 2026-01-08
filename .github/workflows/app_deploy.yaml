@@ -14,8 +14,11 @@ on:
       manual_run:
         description: 'Manual Run'
         required: false
-        default: true
-        type: boolean
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 # Enable OIDC token for AWS authentication
 permissions:
