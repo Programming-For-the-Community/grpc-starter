@@ -19,7 +19,7 @@ resource "aws_lb" "grpc_server_nlb" {
 }
 
 resource "aws_lb_target_group" "grpc_server_tg_grpc" {
-  name        = "grpc-tg"
+  name        = "server-grpc-tg"
   port        = 50051
   protocol    = "TCP"
   target_type = "ip"
@@ -36,7 +36,7 @@ resource "aws_lb_target_group" "grpc_server_tg_grpc" {
 }
 
 resource "aws_lb_target_group" "grpc_server_tg_http" {
-  name        = "grpc-tg"
+  name        = "server-http-tg"
   port        = 8080
   protocol    = "TCP"
   target_type = "ip"
