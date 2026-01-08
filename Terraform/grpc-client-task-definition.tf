@@ -51,7 +51,7 @@ resource "aws_ecs_task_definition" "grpc_client_task" {
         },
         {
           name  = "GRPC_HOST"
-          value = aws_route53_record.grpc_server.name
+          value = aws_lb.grpc_server_nlb.dns_name
         },
         {
           name  = "SERVER_URL"
