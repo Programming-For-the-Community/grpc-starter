@@ -21,7 +21,7 @@ resource "aws_security_group" "grpc_server_sg" {
     security_groups = [aws_security_group.grpc_starter_client_sg.id]
   }
 
-  # Allow all outbound traffic (for DynamoDB via VPC endpoint)
+  # Allow all outbound traffic (for DynamoDB via VPC endpoint, DNS Resolution, etc)
   egress {
     description = "All outbound traffic"
     from_port   = 0

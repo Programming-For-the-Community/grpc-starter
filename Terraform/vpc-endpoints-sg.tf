@@ -12,7 +12,10 @@ resource "aws_security_group" "grpc_starter_vpc_endpoints_sg" {
     cidr_blocks = [
       var.private1_subnet_cidr,
       var.private2_subnet_cidr,
-      var.private3_subnet_cidr
+      var.private3_subnet_cidr,
+      var.public1_subnet_cidr,
+      var.public2_subnet_cidr,
+      var.public3_subnet_cidr
     ]
   }
 

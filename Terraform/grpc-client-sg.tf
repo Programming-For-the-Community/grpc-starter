@@ -31,22 +31,13 @@ resource "aws_security_group" "grpc_starter_client_sg" {
     # security_groups = [aws_security_group.grpc_server_sg.id]
   }
 
-  # Allow DNS resolution
+  # Allow all outbound traffic (for DynamoDB via VPC endpoint, DNS Resolution, etc)
   egress {
-    description = "DNS resolution"
-    from_port   = 53
-    to_port     = 53
-    protocol    = "udp"
-    cidr_blocks = [var.vpc_cidr] # Or use VPC DNS server
-  }
-
-  # If you need AWS service access
-  egress {
-    description = "HTTPS for AWS services"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [var.all_traffic] # Or restrict to VPC endpoints
+    description = "All outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [var.all_traffic]
   }
 
   tags = {
