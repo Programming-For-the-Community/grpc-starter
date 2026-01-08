@@ -55,7 +55,7 @@ resource "aws_ecs_task_definition" "grpc_client_task" {
         },
         {
           name  = "SERVER_URL"
-          value = "http://0.0.0.0:8080"
+          value = "https://${aws_route53_record.grpc_client.name}"
         }
       ]
 

@@ -21,7 +21,7 @@ class Logger {
   static Future<void> init() async {
     final config = AppConfig();
     _instance._appName = '${config.appName}@${config.appVersion}';
-    _instance._serverUrl = '${config.serverUrl}/logs' ?? '/api/logs';
+    _instance._serverUrl = '${config.serverUrl}/logs' ?? '/logs';
   }
 
   String _getTimestamp() {
