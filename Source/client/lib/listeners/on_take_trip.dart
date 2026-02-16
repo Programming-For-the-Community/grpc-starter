@@ -3,51 +3,56 @@ import 'package:flutter_grpc_client/controllers/grid_interaction_controller.dart
 
 import '../classes/grpc_user.dart';
 import '../helpers/zoom_to_user.dart';
-import '../proto/tracker.pb.dart';
 import '../singletons/grpc_client.dart';
 import '../singletons/logger.dart';
 
 void onTakeTrip(BuildContext context, GridInteractionController gridController, GrpcUser user) async {
   final Logger logger = Logger();
   Size size = MediaQuery.of(context).size;
-  UserResponse response = await GrpcClient().takeTrip(user.username);
 
-  if (response.status == TrackerStatus.OK) {
-    var path = response.user.pathsTraveled[response.user.pathsTraveled.length - 1];
+  try {
+    final response = await GrpcClient().takeTrip(user.username);
 
-    List<List<double>> pathToAdd = [];
+    // Extract path from HTTP API response
+    final pathData = response['pathsTraveled'] as List? ?? [];
+    if (pathData.isNotEmpty) {
+      final lastPath = pathData.last as Map<String, dynamic>;
+      final pathTraveled = lastPath['pathTraveled'] as List? ?? [];
 
-    for (var location in path!.pathTraveled) {
-      pathToAdd.add([location.x, location.y]);
+      List<List<double>> pathToAdd = [];
+      for (var location in pathTraveled) {
+        final x = (location['x'] ?? 0).toDouble();
+        final y = (location['y'] ?? 0).toDouble();
+        pathToAdd.add([x, y]);
+      }
+
+      if (pathToAdd.isNotEmpty) {
+        user.addPath(pathToAdd);
+
+        final currentLocation = response['currentLocation'] as Map<String, dynamic>?;
+        final endX = currentLocation?['x'] ?? pathToAdd.last[0];
+        final endY = currentLocation?['y'] ?? pathToAdd.last[1];
+
+        GrpcUser pathEndpointUser = GrpcUser(
+          username: user.username,
+          currentX: (endX as num).toDouble(),
+          currentY: (endY as num).toDouble(),
+        );
+
+        logger.info('Trip taken for user: ${user.username} to ($endX, $endY)');
+        logger.info('Trip Details: ${user.pathToShow}');
+
+        user.showPath = true;
+        user.currentX = endX.toDouble();
+        user.currentY = endY.toDouble();
+
+        // Zoom to the final location
+        zoomToUser(gridController, size, pathEndpointUser);
+      }
+    } else {
+      logger.warning('No path data in response');
     }
-
-    user.addPath(pathToAdd);
-
-    GrpcUser pathEndpointUser = GrpcUser(
-      username: user.username,
-      currentX: pathToAdd.last[0],
-      currentY: pathToAdd.last[1],
-    );
-
-    logger.info('Trip taken for user: ${user.username} to (${response.user.currentLocation.x}, ${response.user.currentLocation.y})');
-    logger.info('Trip Details: ${user.pathToShow}');
-
-    user.showPath = true;
-
-    // Update user's current position to the end of the path
-    user.currentX = pathToAdd.last[0];
-    user.currentY = pathToAdd.last[1];
-
-    user.showPath = true;
-
-    // Update user's current position to the end of the path
-    user.currentX = pathToAdd.last[0];
-    user.currentY = pathToAdd.last[1];
-
-    // Zoom to the final location
-    zoomToUser(gridController, size, pathEndpointUser);
-
-  } else {
-    logger.warning('Response Status: ${response.status} - ${response.message}');
+  } catch (e) {
+    logger.error('Error taking trip: $e');
   }
 }

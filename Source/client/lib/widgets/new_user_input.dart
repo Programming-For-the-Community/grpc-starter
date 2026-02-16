@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../singletons/grpc_client.dart';
 import '../singletons/logger.dart';
-import '../proto/tracker.pbgrpc.dart';
 
 class NewUserInput extends StatefulWidget {
   const NewUserInput({super.key});
@@ -51,33 +50,37 @@ class _NewUserInputState extends State<NewUserInput> {
   }
 
   Future<void> _handleSubmit() async {
+    logger.info('[UI] Create User button clicked');
+    logger.info('[UI] Username input: ${_controller.text}');
+    logger.info('[UI] Form validation: ${_formKey.currentState?.validate()}');
+
     if (_formKey.currentState!.validate()) {
       try {
+        logger.info('[UI] Calling GrpcClient().createUser()');
         final response = await GrpcClient().createUser(_controller.text.trim());
-        if (response.status == TrackerStatus.OK) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('User created: ${response.user.name}')),
-          );
+        logger.info('[UI] API response received: $response');
 
-          _controller.clear();
-          setState(() => _isValid = false);
+        final userName = response['username'] ?? response['name'] ?? response['user']?['name'] ?? 'Unknown';
 
-          logger.info('User created: ${response.user.name}');
-          logger.debug('Response -> $response');
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to create user')),
-          );
-
-          logger.warning('Failed to create user -> $response');
-        }
-      } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create user')),
+          SnackBar(content: Text('User created: $userName')),
+        );
+
+        _controller.clear();
+        setState(() => _isValid = false);
+
+        logger.info('User created: $userName');
+        logger.debug('Response -> $response');
+      } catch (e) {
+        logger.error('[UI] Error creating user: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to create user')),
         );
 
         logger.error('Error creating user -> $e');
       }
+    } else {
+      logger.warning('[UI] Form validation failed');
     }
   }
 
@@ -129,10 +132,13 @@ class _NewUserInputState extends State<NewUserInput> {
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
-                        onPressed: _isValid ? _handleSubmit : null,
+                        onPressed: _isValid ? () async {
+                          logger.info('[UI] Create User button pressed, _isValid=$_isValid');
+                          await _handleSubmit();
+                        } : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _isValid ? Colors.purple : Colors.grey, // Purple when enabled, grey when disabled
-                          foregroundColor: Colors.white, // White text color
+                          backgroundColor: _isValid ? Colors.purple : Colors.grey,
+                          foregroundColor: Colors.white,
                         ),
                         child: const Text('Create User'),
                       ),

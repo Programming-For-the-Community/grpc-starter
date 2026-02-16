@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../singletons/logger.dart';
-import '../proto/tracker.pbgrpc.dart';
 import '../singletons/grpc_client.dart';
 import '../classes/grpc_user.dart';
 import '../controllers/grid_interaction_controller.dart';
@@ -12,44 +11,31 @@ void onMoveUser(BuildContext context, GridInteractionController gridController, 
 
   try {
     final size = MediaQuery.of(context).size;
-    final UserResponse response = await GrpcClient().moveUser(user.username);
-    if (response.status == TrackerStatus.OK) {
+    final response = await GrpcClient().moveUser(user.username, user.currentX, user.currentY);
 
-      // Extract coordinates from message format containing {"x":123, "y":456}
-      final RegExp coordsPattern = RegExp(r':\s*(-?\d+)');
-      final match = coordsPattern.allMatches(response.message);
+    // Extract coordinates from response
+    final newX = (response['location']?['x'] ?? response['x'] ?? user.currentX).toDouble();
+    final newY = (response['location']?['y'] ?? response['y'] ?? user.currentY).toDouble();
 
-      // Extract all matched numbers and convert to integers
-      List<double> numbers = match
-          .map((m) => m.group(1)!)
-          .map((s) => double.parse(s))
-          .toList();
+    // Create a temporary user with the new position
+    final movedUser = GrpcUser(
+      username: user.username,
+      currentX: newX,
+      currentY: newY,
+    );
+    movedUser.color = user.color;
+    movedUser.showPath = false;
 
-      final newX = numbers[0];
-      final newY = numbers[1];
+    // Update the existing users map
+    final updatedUsers = Map<String, GrpcUser>.from(users.value);
+    updatedUsers[user.username] = movedUser;
+    users.value = updatedUsers;
 
-      // Create a temporary user with the new position
-      final movedUser = GrpcUser(
-        username: user.username,
-        currentX: newX,
-        currentY: newY,
-      );
-      movedUser.color = user.color;
-      movedUser.showPath = false;
+    logger.info('Moved user ${user.username} to ($newX, $newY)');
 
-      // Update the existing users map
-      final updatedUsers = Map<String, GrpcUser>.from(users.value);
-      updatedUsers[user.username] = movedUser;
-      users.value = updatedUsers;  // This will trigger the ValueListenable
-
-      logger.info('Moved user ${user.username} to ($newX, $newY)');
-
-      // Update the selected user and zoom
-      zoomToUser(gridController, size, movedUser);
-      onStateChanged(movedUser);
-    } else {
-      logger.error('Failed to move user -> $response');
-    }
+    // Update the selected user and zoom
+    zoomToUser(gridController, size, movedUser);
+    onStateChanged(movedUser);
   } catch (e) {
     logger.error('Error moving user: $e');
   }

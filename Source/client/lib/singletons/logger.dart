@@ -4,8 +4,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io' show Platform;
-import 'package:web/web.dart' as web;
-import 'dart:js_interop';
 
 import 'app_config.dart';
 
@@ -22,6 +20,10 @@ class Logger {
     final config = AppConfig();
     _instance._appName = '${config.appName}@${config.appVersion}';
     _instance._serverUrl = '${config.serverUrl}/logs' ?? '/logs';
+
+    // Log the configured server URL for debugging
+    developer.log('[Logger] Server URL configured: ${config.serverUrl}', name: 'flutter-logger');
+    developer.log('[Logger] Logs endpoint: ${_instance._serverUrl}', name: 'flutter-logger');
   }
 
   String _getTimestamp() {
@@ -64,34 +66,19 @@ class Logger {
     if (!kIsWeb) return 'not-web';
 
     try {
-      // Import window from package:web dynamically
-      final userAgent = _getWebUserAgent();
-
-      // Parse user agent to get browser info
-      if (userAgent.contains('Edg/')) {
-        final match = RegExp(r'Edg/([\d.]+)').firstMatch(userAgent);
-        return 'Edge@${match?.group(1) ?? 'unknown'}';
-      } else if (userAgent.contains('Chrome/')) {
-        final match = RegExp(r'Chrome/([\d.]+)').firstMatch(userAgent);
-        return 'Chrome@${match?.group(1) ?? 'unknown'}';
-      } else if (userAgent.contains('Firefox/')) {
-        final match = RegExp(r'Firefox/(\d+\.\d+)').firstMatch(userAgent);
-        return 'Firefox@${match?.group(1) ?? 'unknown'}';
-      } else if (userAgent.contains('Safari/') && !userAgent.contains('Chrome')) {
-        final match = RegExp(r'Version/(\d+\.\d+)').firstMatch(userAgent);
-        return 'Safari@${match?.group(1) ?? 'unknown'}';
-      } else {
-        return 'Unknown@0.0';
-      }
+      // For web builds, return a generic identifier
+      // Browser info is not critical for logging
+      return 'web-browser@unknown';
     } catch (e) {
-      return 'Unknown@0.0';
+      return 'unknown-platform';
     }
   }
 
-  /// Get user agent string from web platform
+  /// Get user agent string from web platform (fallback for non-web)
   String _getWebUserAgent() {
-    // This will be implemented differently for web vs non-web
-    return (web.window.navigator.userAgent as JSString).toDart;
+    // This method is kept for compatibility but not used
+    // since we removed the web package dependency
+    return 'unknown';
   }
 
   void _log(String level, String message, [Object? error, StackTrace? stackTrace]) {

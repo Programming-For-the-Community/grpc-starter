@@ -3,6 +3,18 @@
 # ========================
 FROM ghcr.io/cirruslabs/flutter:stable AS flutter
 
+# BUILD TIME ARGS
+#ARG SERVER_URL=http://0.0.0.0:8080
+#ARG APP_NAME=flutter-grpc-client
+#ARG APP_VERSION=1.0.0
+#ARG APP_ENV=production
+
+# LOCAL TESTING ARGUMENTS
+ARG SERVER_URL=http://0.0.0.0:8080
+ARG APP_NAME=flutter-grpc-client
+ARG APP_VERSION=1.0.0
+ARG APP_ENV=docker
+
 # Install protoc and dart protoc plugin
 RUN apt-get update && apt-get install -y protobuf-compiler curl unzip
 RUN dart pub global activate protoc_plugin 21.1.2
@@ -28,8 +40,12 @@ RUN flutter pub get
 # Adjust the paths according to your proto file structure
 RUN protoc --dart_out=grpc:lib/proto -I/workspace/proto /workspace/proto/*.proto
 
-# Build Flutter web app
-RUN flutter build web --release
+# Build Flutter web app with build-time environment variables via --dart-define
+RUN flutter build web --release \
+    --dart-define=SERVER_URL=${SERVER_URL} \
+    --dart-define=APP_NAME=${APP_NAME} \
+    --dart-define=APP_VERSION=${APP_VERSION} \
+    --dart-define=APP_ENV=${APP_ENV}
 
 # ========================
 # NPM Build Stage
@@ -56,6 +72,16 @@ WORKDIR /app
 # ENV APP_NAME=flutter-grpc-client
 # ENV APP_VERSION=1.0.0
 # ENV APP_HOST=0.0.0.0
+
+# Runtime environment variables (injected via Docker -e or ECS task definition)
+# These will be read by server.js and exposed via /config endpoint
+# Examples (set via: docker run -e GRPC_HOST=your.host ...):
+# ENV GRPC_HOST=0.0.0.0
+# ENV GRPC_PORT=50051
+# ENV GRPC_SECURE=false
+# ENV APP_ENV=local
+# ENV SERVER_URL=http://0.0.0.0:8080
+# See server.js /config endpoint for full list of available variables
 
 # Install bash if needed
 RUN apt-get update && apt-get install -y bash && rm -rf /var/lib/apt/lists/*

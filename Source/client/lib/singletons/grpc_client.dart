@@ -1,81 +1,77 @@
-import 'package:grpc/grpc.dart';
-
-import 'app_config.dart';
-import '../proto/tracker.pbgrpc.dart';
+import '../services/tracker_api_service.dart';
+import '../singletons/logger.dart';
 
 class GrpcClient {
   static final GrpcClient _instance = GrpcClient._internal();
-
-  late final ClientChannel _channel;
-  late final TrackerClient trackerClient;
+  late TrackerApiService _apiService;
+  late Logger _logger;
 
   GrpcClient._internal();
 
   factory GrpcClient() => _instance;
 
   static Future<void> init() async {
-    final config = AppConfig();
-
-    _instance._channel = ClientChannel(
-      config.grpcHost,
-      port: config.grpcPort,
-      options: ChannelOptions(
-        credentials: ChannelCredentials.insecure(),
-      ),
-    );
-    _instance.trackerClient = TrackerClient(_instance._channel);
-  }
-
-  Future<void> shutdown() async {
-    await _channel.shutdown();
-  }
-
-  Future<UserResponse> createUser(String username) async {
-    final request = Username(name: username);
+    _instance._logger = Logger();
+    _instance._apiService = TrackerApiService();
 
     try {
-      final response = await trackerClient.createUser(request);
-
-      return response;
+      await _instance._apiService.init();
+      _instance._logger.info('[GRPC] gRPC client initialized (using HTTP API gateway)');
     } catch (e) {
+      _instance._logger.error('[GRPC] Failed to initialize gRPC client: $e');
+      rethrow;
+    }
+  }
+
+  TrackerApiService get apiService => _apiService;
+
+  Future<Map<String, dynamic>> createUser(String username) async {
+    try {
+      _logger.info('[GRPC] createUser called with username: $username');
+      final result = await _apiService.createUser(username);
+      _logger.info('[GRPC] createUser completed successfully');
+      return result;
+    } catch (e) {
+      _logger.error('[GRPC] createUser failed: $e');
       throw Exception('Failed to create user: $e');
     }
-
   }
 
-  Future<UserResponse> moveUser(String username) async {
-    final request = Username(name: username);
-
+  Future<Map<String, dynamic>> moveUser(String username, double x, double y) async {
     try {
-      final response = await trackerClient.moveUser(request);
-
-      return response;
+      return await _apiService.moveUser(username, x, y);
     } catch (e) {
       throw Exception('Failed to move user: $e');
     }
   }
 
-  Future<UserResponse> takeTrip(String username) async {
-    final request = Username(name: username);
-
+  Future<Map<String, dynamic>> takeTrip(String username) async {
     try {
-      final response = await trackerClient.takeTrip(request);
-
-      return response;
+      return await _apiService.takeTrip(username);
     } catch (e) {
       throw Exception('Failed to take trip: $e');
     }
   }
 
-  Future<UserResponse> getUser(String username) async {
-    final request = Username(name: username);
-
+  Future<Map<String, dynamic>> getUser(String username) async {
     try {
-      final response = await trackerClient.getUser(request);
-
-      return response;
+      return await _apiService.getUser(username);
     } catch (e) {
       throw Exception('Failed to get user: $e');
+    }
+  }
+
+  // Return stream of users
+  Stream<Map<String, dynamic>> getUsers() {
+    return _apiService.getUsers();
+  }
+
+  // Get users via polling (fallback)
+  Future<List<Map<String, dynamic>>> getUsersPolling() async {
+    try {
+      return await _apiService.getUsersPolling();
+    } catch (e) {
+      throw Exception('Failed to get users: $e');
     }
   }
 }

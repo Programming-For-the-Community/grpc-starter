@@ -72,7 +72,7 @@ export const getUsers = async (call: ServerWritableStream<{}, RealTimeUserRespon
         }
       }
 
-      for (const [shardId, iterator] of Object.keys(shardIterators)) {
+      for (const [shardId, iterator] of Object.entries(shardIterators)) {
         if (!iterator) {
           delete shardIterators[shardId];
           continue;

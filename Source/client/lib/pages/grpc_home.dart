@@ -3,7 +3,6 @@ import 'package:flutter_grpc_client/controllers/grid_interaction_controller.dart
 
 import '../singletons/logger.dart';
 import '../classes/grpc_user.dart';
-import '../proto/tracker.pbgrpc.dart';
 import '../widgets/new_user_input.dart';
 import '../singletons/grpc_client.dart';
 import '../painters/coordinate_grid_painter.dart';
@@ -55,52 +54,66 @@ class _GrpcHomePageState extends State<GrpcHomePage> with WidgetsBindingObserver
 
   void startUserStream() async {
     var colorIndex = 0;
-    while (true) {
-      try {
-        await for (RealTimeUserResponse userResponse in GrpcClient().trackerClient.getUsers(Empty())) {
-          if (userResponse.status == TrackerStatus.OK) {
+    try {
+      await for (Map<String, dynamic> userResponse in GrpcClient().getUsers()) {
+        try {
+          // Parse the user response from HTTP API
+          final userName = userResponse['userName'] ?? userResponse['username'] ?? '';
+          final currentX = (userResponse['currentLocation']?['x'] ?? userResponse['x'] ?? 0).toDouble();
+          final currentY = (userResponse['currentLocation']?['y'] ?? userResponse['y'] ?? 0).toDouble();
+          final eventType = userResponse['eventType'] ?? 'MODIFY';
+          final statusCode = userResponse['status'] ?? 'OK';
+
+          if (statusCode == 'OK') {
             final GrpcUser returnedUser = GrpcUser(
-              username: userResponse.userName,
-              currentX: userResponse.currentLocation.x,
-              currentY: userResponse.currentLocation.y,
+              username: userName,
+              currentX: currentX,
+              currentY: currentY,
             );
             returnedUser.color = AppConfig.userColors[colorIndex % AppConfig.userColors.length];
 
-            if (userResponse.eventType == DynamoDBEvent.INSERT || userResponse.eventType == DynamoDBEvent.EXISTING || userResponse.eventType == DynamoDBEvent.MODIFY) {
+            // Handle different event types
+            if (eventType == 'INSERT' || eventType == 'EXISTING' || eventType == 'MODIFY') {
               final updatedUsers = Map<String, GrpcUser>.from(_users.value);
               updatedUsers.update(
-                userResponse.userName,
+                userName,
                 (existing) {
-                  logger.info('Updating user ${userResponse.userName} from (${existing.currentX}, ${existing.currentY}]) to (${returnedUser.currentX}, ${returnedUser.currentY})');
-                  returnedUser.color = existing.color; // Preserve existing color
-                  returnedUser.showPath = existing.showPath; // Preserve path visibility
-                  returnedUser.pathToShow = existing.pathToShow; // Preserve path data
+                  logger.info('Updating user $userName from (${existing.currentX}, ${existing.currentY}) to ($currentX, $currentY)');
+                  returnedUser.color = existing.color;
+                  returnedUser.showPath = existing.showPath;
+                  returnedUser.pathToShow = existing.pathToShow;
                   return returnedUser;
                 },
                 ifAbsent: () {
-                  logger.info('Adding existing user: ${userResponse.userName}] at (${returnedUser.currentX}], ${returnedUser.currentY})');
+                  logger.info('Adding existing user: $userName at ($currentX, $currentY)');
                   colorIndex++;
                   return returnedUser;
                 },
               );
-              _users.value = updatedUsers;  // This will trigger the ValueListenable
-            } else if(userResponse.eventType == DynamoDBEvent.REMOVE) {
+              _users.value = updatedUsers;
+            } else if (eventType == 'REMOVE') {
               final updatedUsers = Map<String, GrpcUser>.from(_users.value);
-              updatedUsers.remove(userResponse.userName);
-              _users.value = updatedUsers;  // This will trigger the ValueListenable
-              logger.info('Removed user: ${userResponse.userName}');
+              updatedUsers.remove(userName);
+              _users.value = updatedUsers;
+              logger.info('Removed user: $userName');
             }
 
             logger.debug('Current user count: ${_users.value.length}');
           } else {
-            logger.warning('Response Status: ${userResponse.status} - ${userResponse.message}');
+            logger.warning('Response Status: $statusCode - ${userResponse['message']}');
           }
+        } catch (e) {
+          logger.error('Error processing user update: $e');
         }
-      } catch (e) {
-        logger.error('Stream error: $e');
-        await Future.delayed(const Duration(seconds: 5));
-        logger.info('Attempting to reconnect to user stream...');
       }
+    } catch (e) {
+      logger.error('Stream error: $e');
+      // Retry stream after delay
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) {
+          startUserStream();
+        }
+      });
     }
   }
 
