@@ -1,8 +1,14 @@
 # Files
+**/.terraform.lock.hcl
+**/.env.*
+**/package-lock.json
 
 # Directories
 .vscode
-.terraform/*
+**/.terraform/*
 node_modules
 dist
 coverage
+**/client/**/.dart_tool
+**/client/**/build
+

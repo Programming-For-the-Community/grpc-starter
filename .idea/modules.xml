@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/KotlinClient.commonMain.iml" filepath="$PROJECT_DIR$/.idea/modules/KotlinClient.commonMain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/KotlinClient.commonTest.iml" filepath="$PROJECT_DIR$/.idea/modules/KotlinClient.commonTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/KotlinClient.jsMain.iml" filepath="$PROJECT_DIR$/.idea/modules/KotlinClient.jsMain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/KotlinClient.jsTest.iml" filepath="$PROJECT_DIR$/.idea/modules/KotlinClient.jsTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/KotlinClient.jvmMain.iml" filepath="$PROJECT_DIR$/.idea/modules/KotlinClient.jvmMain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/KotlinClient.jvmTest.iml" filepath="$PROJECT_DIR$/.idea/modules/KotlinClient.jvmTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/KotlinClient.main.iml" filepath="$PROJECT_DIR$/.idea/modules/KotlinClient.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/KotlinClient.test.iml" filepath="$PROJECT_DIR$/.idea/modules/KotlinClient.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/client.iml" filepath="$PROJECT_DIR$/.idea/modules/client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/grpc-starter.iml" filepath="$PROJECT_DIR$/.idea/grpc-starter.iml" />
+    </modules>
+  </component>
+</project>

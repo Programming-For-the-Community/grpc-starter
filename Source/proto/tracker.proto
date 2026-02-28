@@ -1,14 +1,14 @@
 syntax = "proto3";
 
-import "google/protobuf/empty.proto";
+package tracker;
 
 service Tracker {
 
     // Create a user
     rpc CreateUser(Username) returns (UserResponse) {}
 
-    // Get all the created users
-    rpc GetUsers(google.protobuf.Empty) returns (stream UserResponse) {}
+    // Provides real-time stream of all users
+    rpc GetUsers(Empty) returns (stream RealTimeUserResponse) {}
 
     // Get the requested user
     rpc GetUser(Username) returns (UserResponse) {}
@@ -35,6 +35,8 @@ service Tracker {
     rpc GetLocations(stream Username) returns (stream LocationResponse) {}
 }
 
+message Empty {}
+
 message Username {
     string name = 1;
 }
@@ -60,10 +62,18 @@ message UserResponse {
     optional User user = 3;
 }
 
+message RealTimeUserResponse {
+    TrackerStatus status = 1;
+    string message = 2;
+    optional DynamoDBEvent eventType = 3;
+    optional string userName = 4;
+    optional Location currentLocation = 5;
+}
+
 message LocationResponse {
     TrackerStatus status = 1;
     string message = 2;
-    Username userName = 3;
+    string userName = 3;
     optional Location location = 4;
 }
 
@@ -74,6 +84,19 @@ message PathRequest {
 
 enum TrackerStatus {
     OK = 0;
-    USER_NOT_FOUND = 400;
-    PATH_NOT_FOUND = 401;
+    USER_ALREADY_EXISTS = 400;
+    USER_NOT_CREATED = 401;
+    USER_NOT_FOUND = 402;
+    PATH_NOT_FOUND = 403;
+    NO_RECORDS = 404;
+    MISSING_USER_DATA = 405;
+    USER_STREAM_ERROR = 406;
+    USER_NOT_MOVED = 407;
+}
+
+enum DynamoDBEvent {
+    INSERT = 0;
+    MODIFY = 1;
+    EXISTING = 2;
+    REMOVE = 3;
 }

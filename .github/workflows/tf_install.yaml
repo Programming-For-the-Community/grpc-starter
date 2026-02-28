@@ -11,31 +11,52 @@ on:
         required: false
         default: true
         type: boolean
-  push:
-    branches:
-      - "*dev*"
-  pull_request:
-    branches:
-      - "*dev*"
+  
+  workflow_call:
+    inputs:
+      server_image_tag:
+        description: 'Image tag of the server Docker image'
+        required: true
+        type: string
+      server_version:
+        description: 'Version of the server'
+        required: true
+        type: string
+      client_image_tag:
+        description: 'Image tag of the client Docker image'
+        required: false
+        type: string
+      client_version:
+        required: true
+        type: string
+        description: 'Version of the client'  
 
 permissions:
+  id-token: write
   contents: read
 
 env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
   TF_VAR_vpc_id: ${{ secrets.VPC_ID }}
   TF_VAR_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
   TF_VAR_region: ${{ vars.AWS_RESOURCE_REGION }}
   TF_VAR_project: ${{ vars.PROJECT}}
-  # TF_VAR_owner: ${{ vars.OWNER}}
-  # TF_VAR_subnet_a_cidr: ${{ vars.SUBNET_A_CIDR }}
-  # TF_VAR_subnet_b_cidr: ${{ vars.SUBNET_B_CIDR }}
-  # TF_VAR_subnet_c_cidr: ${{ vars.SUBNET_C_CIDR }}
-  # TF_VAR_lambda_subnet_cidr: ${{ vars.LAMBDA_SUBNET_CIDR }}
-  # TF_VAR_msk_user: ${{ secrets.MSK_USER }}
-  # TF_VAR_msk_password: ${{ secrets.MSK_PASSWORD }}
+  TF_VAR_owner: ${{ vars.OWNER}}
+  TF_VAR_private1_subnet_cidr: ${{ vars.SUBNET_A_CIDR }}
+  TF_VAR_private2_subnet_cidr: ${{ vars.SUBNET_B_CIDR }}
+  TF_VAR_private3_subnet_cidr: ${{ vars.SUBNET_C_CIDR }}
+  TF_VAR_public1_subnet_cidr: ${{ vars.PUBLIC1_SUBNET_CIDR }}
+  TF_VAR_public2_subnet_cidr: ${{ vars.PUBLIC2_SUBNET_CIDR }}
+  TF_VAR_public3_subnet_cidr: ${{ vars.PUBLIC3_SUBNET_CIDR }}
+  TF_VAR_ecr_repository: ${{ vars.ECR_REPOSITORY }}
+  TF_VAR_server_image: "${{ secrets.ECR_URI }}:${{ inputs.server_image_tag}}"
+  TF_VAR_client_image: "${{ secrets.ECR_URI }}:${{ inputs.client_image_tag }}"
+  TF_VAR_server_version: ${{ inputs.server_version }}
+  TF_VAR_domain_name: ${{ secrets.DOMAIN_NAME }}
+  TF_VAR_server_config_arn: ${{ secrets.NODEJS_SERVER_SECRET_ARN }}
+  TF_VAR_client_config_arn: ${{ secrets.FLUTTER_CLIENT_SECRET_ARN }}
+  TF_VAR_server_secret: ${{ vars.NODEJS_SERVER_SECRET_NAME }}
+  TF_VAR_client_secret: ${{ vars.FLUTTER_CLIENT_SECRET_NAME }}
+  TF_VAR_domain_hosted_zone_id: ${{ secrets.DOMAIN_HOSTED_ZONE_ID }}
 
 jobs:
   terraform:
@@ -52,6 +73,16 @@ jobs:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v4
+
+    - name: Echo vars
+      run: |
+        echo "client_image: $TF_VAR_client_image"
+
+    - name: Configure AWS Credentials (via OIDC)
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_DEPLOY_SVC_ACCT_ARN }}
+        aws-region: ${{ vars.AWS_RESOURCE_REGION }}
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform

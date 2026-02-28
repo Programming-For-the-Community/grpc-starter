@@ -1,0 +1,75 @@
+name: Deploy Pipeline - Build Apps and Terraform
+
+on:
+  push:
+    branches:
+      - main
+      - "dev*"
+  pull_request:
+    branches:
+      - main
+      - "dev*"
+  workflow_dispatch:
+    inputs:
+      manual_run:
+        description: 'Manual Run'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+# Enable OIDC token for AWS authentication
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  SERVER_VERSION: '0.0.1'
+  CLIENT_VERSION: '0.0.1'
+
+jobs:
+  set-env:
+    runs-on: ubuntu-latest
+    outputs:
+      server_version: ${{ steps.out.outputs.server_version }}
+      client_version: ${{ steps.out.outputs.client_version }}
+    steps:
+      - id: out
+        run: |
+          echo "server_version=${{ env.SERVER_VERSION }}" >> $GITHUB_OUTPUT
+          echo "client_version=${{ env.CLIENT_VERSION }}" >> $GITHUB_OUTPUT
+
+  build-server:
+    name: Build Server
+    needs: set-env
+    uses: ./.github/workflows/docker_build_push.yaml
+    secrets: inherit
+    with:
+      dockerfile_path: './Source/server/Dockerfile'
+      docker_context: './Source'
+      image_tag: 'nodejs-grpc-server'
+      image_version: ${{ needs.set-env.outputs.server_version }}
+
+  build-client:
+    name: Build Client
+    needs: set-env
+    uses: ./.github/workflows/docker_build_push.yaml
+    secrets: inherit
+    with:
+      dockerfile_path: './Source/client/Dockerfile'
+      docker_context: './Source'
+      image_tag: 'flutter-grpc-client'
+      image_version: ${{ needs.set-env.outputs.client_version }}
+
+  terraform-deploy:
+    name: Deploy Terraform Infrastructure
+    needs: [set-env, build-server, build-client]
+    uses: ./.github/workflows/tf_install.yaml
+    secrets: inherit
+    with:
+      server_image_tag: ${{ needs.build-server.outputs.image_tag }}
+      server_version: ${{ needs.set-env.outputs.server_version }}
+      client_image_tag: ${{ needs.build-client.outputs.image_tag }}
+      client_version: ${{ needs.set-env.outputs.client_version }}
